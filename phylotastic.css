@@ -1,0 +1,10 @@
+/* line 1, js/styles/phylotastic.scss */
+h1 {
+  color: red;
+}
+
+/* line 5, js/styles/phylotastic.scss */
+.pt-map {
+  width: 400px;
+  height: 400px;
+}

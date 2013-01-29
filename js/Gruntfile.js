@@ -4,50 +4,39 @@ module.exports = function(grunt) {
 
   var libs = [
     'lib/jquery.js',
-    'lib/jquery-ui.js', ];
+    'lib/jquery-ui.js',
+    'lib/google-maps.js'];
 
-  var src = [].concat(libs,
-    'js/Utils.js',
-    'js/Phylotastic.js',
-    'js/Maps.js');
+  var core = [].concat(
+    'src/Phylotastic.js',
+    'src/Utils.js');
+
+  var src = [].concat(libs, core,
+    'src/App.js',
+    'src/Maps.js');
 
   grunt.initConfig({
     // Metadata.
-    jshint: {
-      gruntfile: {
-        options: {
-          jshintrc: '.jshintrc'
-        },
-        src: 'Gruntfile.js'
-      },
-      js: {
-        src: ['js/**/*.js', 'js/*.js']
-      }
-    },
     concat: {
       app: {
         src: src,
-      dest: './phylotastic.js'
+        dest: '../phylotastic.js'
       }
     },
     watch: {
-      gruntfile: {
-        files: '<%= jshint.gruntfile.src %>',
-        tasks: ['jshint:gruntfile']
-      },
       app: {
-        files: '<%= jshint.js.src %>',
-        tasks: ['concat']
+        files: src,
+        tasks: ['concat:app']
       },
       styles: {
         files: 'styles/*.scss',
-        tasks: ['compass']
+        tasks: ['compass:all']
       }
     },
     compass: {
       all: {
         src: 'styles/',
-        dest: '.'
+        dest: '..'
       }
     }
   });
@@ -59,6 +48,6 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-compass');
 
   // Default task.
-  grunt.registerTask('default', ['concat', 'compass']);
+  grunt.registerTask('default', ['concat:app', 'compass:all']);
 
 };
