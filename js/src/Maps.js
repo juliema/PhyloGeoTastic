@@ -1,111 +1,24 @@
 Phylotastic.Maps = {
 
   insertMap: function(el) {
-    console.log("Loading a map...");
+    var me = this;
     var mapOptions = {
-      center: new google.maps.LatLng(-34.397, 150.644),
-      zoom: 2,
+      zoom: 3,
       maxZoom: 10,
       minZoom: 1,
       minLat: -85,
       maxLat: 85,
       mapTypeControl: false,
       panControl: false,
-      zoomControl: true,
+      zoomControl: false,
       streetViewControl: false,
       mapTypeId: google.maps.MapTypeId.ROADMAP,
-      /*
-      styles: [{
-        "stylers": [{
-          "saturation": -65
-        },
-        {
-          "gamma": 1.52
-        }]
-      },
-      {
-        "featureType": "administrative",
-        "stylers": [{
-          "saturation": -95
-        },
-        {
-          "gamma": 2.26
-        }]
-      },
-      {
-        "featureType": "water",
-        "elementType": "labels",
-        "stylers": [{
-          "visibility": "off"
-        }]
-      },
-      {
-        "featureType": "administrative.locality",
-        "stylers": [{
-          "visibility": "off"
-        }]
-      },
-      {
-        "featureType": "road",
-        "stylers": [{
-          "visibility": "simplified"
-        },
-        {
-          "saturation": -99
-        },
-        {
-          "gamma": 2.22
-        }]
-      },
-      {
-        "featureType": "poi",
-        "elementType": "labels",
-        "stylers": [{
-          "visibility": "off"
-        }]
-      },
-      {
-        "featureType": "road.arterial",
-        "stylers": [{
-          "visibility": "off"
-        }]
-      },
-      {
-        "featureType": "road.local",
-        "elementType": "labels",
-        "stylers": [{
-          "visibility": "off"
-        }]
-      },
-      {
-        "featureType": "transit",
-        "stylers": [{
-          "visibility": "off"
-        }]
-      },
-      {
-        "featureType": "road",
-        "elementType": "labels",
-        "stylers": [{
-          "visibility": "off"
-        }]
-      },
-      {
-        "featureType": "poi",
-        "stylers": [{
-          "saturation": -55
-        }]
-      }]
-*/
     };
-
     this.map = new google.maps.Map(el, mapOptions);
-
-    var me = this;
 
     var drawingManager = new google.maps.drawing.DrawingManager({
       drawingMode: null,
-      drawingControl: true,
+      drawingControl: false,
       drawingControlOptions: {
         position: google.maps.ControlPosition.TOP_CENTER,
         drawingModes: [
@@ -156,13 +69,29 @@ Phylotastic.Maps = {
     });
 
     drawingManager.setMap(this.map);
+
+    var geocoder = geocoder = new google.maps.Geocoder();
+    this.geocoder = geocoder;
+  },
+
+  centerOnCountry: function(country) {
+    var me = this;
+    me.geocoder.geocode({
+      'address': country
+    },
+    function(results, status) {
+      if (status == google.maps.GeocoderStatus.OK) {
+        me.map.setCenter(results[0].geometry.location);
+      }
+    });
   },
 
   setRectangularSelection: function() {
     this.drawingManager.setOptions({
       drawingMode: google.maps.drawing.OverlayType.RECTANGLE,
+      drawingControl: true,
       drawingControlOptions: {
-        position: google.maps.ControlPosition.TOP_CENTER,      
+        position: google.maps.ControlPosition.TOP_CENTER,
         drawingModes: [google.maps.drawing.OverlayType.RECTANGLE]
       }
     });
@@ -171,8 +100,9 @@ Phylotastic.Maps = {
   setCircularSelection: function() {
     this.drawingManager.setOptions({
       drawingMode: google.maps.drawing.OverlayType.CIRCLE,
+      drawingControl: true,
       drawingControlOptions: {
-        position: google.maps.ControlPosition.TOP_CENTER,      
+        position: google.maps.ControlPosition.TOP_CENTER,
         drawingModes: [google.maps.drawing.OverlayType.CIRCLE]
       }
     });
