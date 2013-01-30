@@ -2,10 +2,10 @@
 
 use warnings;
 use strict;
-
 use CGI;
 use LWP::UserAgent;
-
+use Text::CSV;
+use Parse::CSV;
 use JSON;
 use Log::Log4perl qw(:easy);
 use File::Spec::Functions qw(catfile);
@@ -44,13 +44,20 @@ use constant URL_PREFIX => 'http://phylotastic-wg.nescent.org/~mg229/cgi-bin/';
 my $http = LWP::UserAgent->new();
 my $latitude = 40;
 my $longitude = -109;
-my $radius = 10;
+my $radius = 1000;
 my $ne_latitude = 50;
 my $ne_longitude = -100;
-my $service = 'inaturalist';
+#my $service = 'inaturalist';
+my $service = 'mapoflife';
 my $help_opt = 0;
-
+my $each;
 my $cgi = CGI->new();
+my @array_ref;
+my @namearray;
+my %specieshash;
+my $species;
+
+open OUT , ">Unclean_Names.txt";
 use constant IS_CGI => exists $ENV{'GATEWAY_INTERFACE'};
 
 if (IS_CGI) {
@@ -97,36 +104,67 @@ if ($service eq 'inaturalist') {
 
 print $cgi->header(-status => 200, -type => 'text/plain') if IS_CGI;
 
-@species = ('Mus musculus', 'Homo sapiens');
+#@species = ('Mus musculus', 'Homo sapiens');
 
 output_species(@species);
 
 # Prints the given list of species, separated by newlines.
 sub output_species {
     my @species = @_;
-  foreach my $s (@species) {
+    foreach my $s (@species) {
     print $s."\n";
   }
 }
 
-sub search_inaturalist {
-    my ($latitude, $longitude, $ne_longitude, $ne_longitude) = @_;
-    my $tnrs_url ="http://www.inaturalist.org/observations.json?taxon_name=Aves&swlat=$latitude\&swlng=$longitude\&nelat=$ne_latitude\&nelng=$ne_longitude";
-    my $request_url = URI->new($tnrs_url);
 
+sub search_inaturalist {
+#    my ($latitude, $longitude, $ne_longitude, $ne_latitude) = @_;
+    my $tnrs_url ="http://www.inaturalist.org/observations.csv?taxon_name=Aves&swlat=$latitude\&swlng=$longitude\&nelat=$ne_latitude\&nelng=$ne_longitude";
+    my $request_url = URI->new($tnrs_url);
     # submit request
+    INFO("HTTP GET: $request_url");
+    my $response = $http->get($request_url);
+    print "$response\n";
+    fatal($response->status_line, IS_CGI, 500) unless ($response->is_success);
+    my $text = $response->decoded_content();
+    open my $text_handle, '<', \$text;
+    my $csv = Text::CSV -> new( {binary => 1});
+    while (my $row = $csv ->getline($text_handle)) {
+	my @array = @{$row};
+	my $name = $array[0];
+	print "$name\n";
+	if (! exists $specieshash{$name})
+	{
+	    push @namearray, $name;
+	    $specieshash{$name}=1;
+	}
+    }
+}
+
+
+sub search_map_of_life {
+    my ($latitude, $longitude, $radius) = @_;
+    my $tnrs_url = "http://mol.cartodb.com/api/v2/sql?q=SELECT%20*%20FROM%20get_species_list_csv('jetz_maps',$longitude,$latitude,$radius,'')&_=1359475900848&format=csv";
+    my $request_url = URI->new($tnrs_url);
+    #submit request                                                                                                                                                                
     INFO("HTTP GET: $request_url");
     my $response = $http->get($request_url);
     fatal($response->status_line, IS_CGI, 500) unless ($response->is_success);
     my $text = $response->decoded_content();
+    open my $text_handle, '<', \$text;
+    my $csv = Text::CSV->new({binary=>1});
+    while (my $row = $csv ->getline($text_handle)) {
+        my @array = @{$row};
+        my $name = $array[0];
+	if (! exists $specieshash{$name})
+	{
+	    push @namearray, $name;
+	    $specieshash{$name}=1;
+	}
+    }
 }
 
-sub search_map_of_life {
-  my ($latitude, $longitude, $radius) = @_;
 
-  # CODE TO FETCH SPECIES FROM MAP OF LIFE GOES HERE
-
-}
 
 # a 'die' method that works in both CGI and commandline context
 sub fatal {
@@ -140,5 +178,15 @@ sub fatal {
         die "$msg\n";
     }
 }
+
+for my $species (@namearray)
+{
+    if ($species =~ m/Scientific/g) {}
+    else 
+    {
+	print OUT "$species\n";
+    }
+}
+
 
 
