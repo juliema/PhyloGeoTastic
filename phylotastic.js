@@ -11627,7 +11627,18 @@ window.Phylotastic = {
 };
 
 Phylotastic.Utils = {
-
+    extend: function(dest) { // merge src properties into dest
+      var sources = Array.prototype.slice.call(arguments, 1);
+      for (var j = 0, len = sources.length, src; j < len; j++) {
+        src = sources[j] || {};
+        for (var i in src) {
+          if (src.hasOwnProperty(i)) {
+            dest[i] = src[i];
+          }
+        }
+      }
+      return dest;
+    }
 
 };
 
@@ -11651,8 +11662,33 @@ Phylotastic.App = {
       Phylotastic.Maps.setCountrySelection();
       break;
     }
-  }
+  },
 
+  sendApiQuery: function() {
+    var script = 'get_species.pl';
+    var source = Phylotastic.DataSources.currentSource;
+
+    // Get the map parameters to send to the server-side script.
+    var mapParams = Phylotastic.Maps.currentParams || {};
+    var params = {
+      service: source.id,
+    };
+    params = Phylotastic.Utils.extend(params, mapParams);
+
+    $('#speciesWaiting .speciesWaitingSource').text(source.label);
+    $('#speciesWaiting').modal({show: true});
+
+    $.ajax({
+      url: this.serverBaseUrl + script,
+      data: params,
+      success: function(data, status, jqXhr) {
+        console.log("Got data back", data);
+      }
+    });
+  },
+
+  //serverBaseUrl: 'http://phylotastic-wg.nescent.org/~mg229/cgi-bin/'
+  serverBaseUrl: 'http://localhost/~greg/cgi-bin/'
 };
 
 $().ready(function() {
@@ -11665,6 +11701,14 @@ $().ready(function() {
 
   var speciesEl = $('.species')[0];
   Phylotastic.DataSources.createSpeciesSourceUI(speciesEl);
+
+  var buttonEl = $('.go-button-wrap')[0];
+  var goButton = $('<button type="button" class="btn go-btn"></button>').appendTo(buttonEl);
+  $(goButton).button();
+  $(goButton).on('click', function() {
+
+    Phylotastic.App.sendApiQuery();
+  });
 
 });
 
@@ -11726,16 +11770,27 @@ Phylotastic.Maps = {
       if (event.type === google.maps.drawing.OverlayType.CIRCLE) {
         var radius = event.overlay.getRadius();
         var center = event.overlay.getCenter();
-        //console.log(center.lat(), center.lng());
+        me.currentParams = {
+          latitude: center.lat(),
+          longitude: center.lng()
+        };
       } else if (event.type === google.maps.drawing.OverlayType.RECTANGLE) {
         var bounds = event.overlay.getBounds();
         var ne = bounds.getNorthEast();
         var sw = bounds.getSouthWest();
-        //console.log(sw.lat(), sw.lng(), ne.lat(), ne.lng());
+        me.currentParams = {
+          latitude: sw.lat(),
+          longitude: sw.lng(),
+          ne_latitude: ne.lat(),
+          ne_longitude: ne.lng()
+        };
       } else {
         var lat = event.overlay.position.lat();
         var lng = event.overlay.position.lng();
-        //console.log(lat, lng);
+        me.currentParams = {
+          latitude: lat,
+          longitude: lng
+        };
       }
 
       drawingManager.setOptions({
@@ -11748,6 +11803,12 @@ Phylotastic.Maps = {
 
     var geocoder = geocoder = new google.maps.Geocoder();
     this.geocoder = geocoder;
+  },
+
+  getParams: function() {
+    var currentOverlay = this.currentOverlay;
+    
+    console.log(currentOverlay);
   },
 
   centerOnCountry: function(country) {

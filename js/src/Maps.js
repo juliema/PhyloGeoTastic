@@ -56,16 +56,27 @@ Phylotastic.Maps = {
       if (event.type === google.maps.drawing.OverlayType.CIRCLE) {
         var radius = event.overlay.getRadius();
         var center = event.overlay.getCenter();
-        //console.log(center.lat(), center.lng());
+        me.currentParams = {
+          latitude: center.lat(),
+          longitude: center.lng()
+        };
       } else if (event.type === google.maps.drawing.OverlayType.RECTANGLE) {
         var bounds = event.overlay.getBounds();
         var ne = bounds.getNorthEast();
         var sw = bounds.getSouthWest();
-        //console.log(sw.lat(), sw.lng(), ne.lat(), ne.lng());
+        me.currentParams = {
+          latitude: sw.lat(),
+          longitude: sw.lng(),
+          ne_latitude: ne.lat(),
+          ne_longitude: ne.lng()
+        };
       } else {
         var lat = event.overlay.position.lat();
         var lng = event.overlay.position.lng();
-        //console.log(lat, lng);
+        me.currentParams = {
+          latitude: lat,
+          longitude: lng
+        };
       }
 
       drawingManager.setOptions({
@@ -78,6 +89,12 @@ Phylotastic.Maps = {
 
     var geocoder = geocoder = new google.maps.Geocoder();
     this.geocoder = geocoder;
+  },
+
+  getParams: function() {
+    var currentOverlay = this.currentOverlay;
+    
+    console.log(currentOverlay);
   },
 
   centerOnCountry: function(country) {
