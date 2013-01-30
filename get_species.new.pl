@@ -89,6 +89,10 @@ if ($service eq 'inaturalist') {
    INFO(sprintf('Fetching species list from map of life...'));
 
    @species = search_map_of_life($latitude, $longitude, $radius);
+} elsif ($service eq 'iucn') {
+
+} elsif ($service eq 'lampyr') {
+
 }
 
 print $cgi->header(-status => 200, -type => 'text/plain') if IS_CGI;
