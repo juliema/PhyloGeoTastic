@@ -5,8 +5,7 @@ use strict;
 
 use CGI;
 use LWP::UserAgent;
-use Text::CSV;
-use Parse::CSV;
+
 use JSON;
 use Log::Log4perl qw(:easy);
 use File::Spec::Functions qw(catfile);
@@ -50,10 +49,8 @@ my $ne_latitude = 50;
 my $ne_longitude = -100;
 my $service = 'inaturalist';
 my $help_opt = 0;
-my $each;
-my $cgi = CGI->new();
-my @array_ref;
 
+my $cgi = CGI->new();
 use constant IS_CGI => exists $ENV{'GATEWAY_INTERFACE'};
 
 if (IS_CGI) {
@@ -96,7 +93,7 @@ if ($service eq 'inaturalist') {
 
 print $cgi->header(-status => 200, -type => 'text/plain') if IS_CGI;
 
-#@species = ('Mus musculus', 'Homo sapiens');
+@species = ('Mus musculus', 'Homo sapiens');
 
 output_species(@species);
 
@@ -109,8 +106,8 @@ sub output_species {
 }
 
 sub search_inaturalist {
-#    my ($latitude, $longitude, $ne_longitude, $ne_longitude) = @_;
-    my $tnrs_url ="http://www.inaturalist.org/observations.csv?taxon_name=Aves&swlat=$latitude\&swlng=$longitude\&nelat=$ne_latitude\&nelng=$ne_longitude";
+    my ($latitude, $longitude, $ne_longitude, $ne_longitude) = @_;
+    my $tnrs_url ="http://www.inaturalist.org/observations.json?taxon_name=Aves&swlat=$latitude\&swlng=$longitude\&nelat=$ne_latitude\&nelng=$ne_longitude";
     my $request_url = URI->new($tnrs_url);
 
     # submit request
@@ -118,13 +115,6 @@ sub search_inaturalist {
     my $response = $http->get($request_url);
     fatal($response->status_line, IS_CGI, 500) unless ($response->is_success);
     my $text = $response->decoded_content();
-    open my $text_handle, '<', \$text;
-    my $csv = Text::CSV -> new( {binary => 1});
-    while (my $row = $csv ->getline($text_handle)) {
-	my @array = @{$row};
-	my $name = $array[0];
-	print "$name\n";
-    }
 }
 
 sub search_map_of_life {
