@@ -4,7 +4,7 @@ module.exports = function(grunt) {
 
   var libs = [
     'lib/jquery.js',
-    'lib/jquery-ui.js',
+    'lib/bootstrap.js',
     'lib/google-maps.js'];
 
   var core = [].concat(
@@ -13,7 +13,9 @@ module.exports = function(grunt) {
 
   var src = [].concat(libs, core,
     'src/App.js',
-    'src/Maps.js');
+    'src/Maps.js',
+    'src/DataSources.js'
+  );
 
   grunt.initConfig({
     // Metadata.

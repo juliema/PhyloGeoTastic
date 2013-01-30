@@ -3,13 +3,40 @@
 
 <head>
 <title>PhyloGeoTastic!</title>
+  <link rel="stylesheet" type="text/css" href="bootstrap.css"></link>
   <link rel="stylesheet" type="text/css" href="phylotastic.css"></link>
   <script src="phylotastic.js"></script>
 </head>
 
 <body>
-<h1>Phylo<b>Geo</b>tastic</h1>
-<div id="map" class="pt-map"></div>
+
+<div class="header row">
+  <div class="logo offset2 span4">
+    <h1>Phylo<b>Geo</b>tastic</h1>
+  </div>
+</div>
+
+<div class="container">
+<div class="row">
+  <div class="species panel span2"></div>
+
+  <div class="sources panel span2"></div>
+
+  <div class="map-wrap panel span8">
+    <div id="map" class="map"></div>
+  </div>
+
+</div>
+
+<div class="row">
+  <div class="go-wrap panel offset4 span4"></div>
+</div>
+
+<div class="row">
+  <div class="info panel offset1 span10"></div>
+</div>
+
+</div>
 </body>
 
 </html>

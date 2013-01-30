@@ -56,10 +56,16 @@ Phylotastic.Maps = {
       if (event.type === google.maps.drawing.OverlayType.CIRCLE) {
         var radius = event.overlay.getRadius();
         var center = event.overlay.getCenter();
-      } else {
+        //console.log(center.lat(), center.lng());
+      } else if (event.type === google.maps.drawing.OverlayType.RECTANGLE) {
         var bounds = event.overlay.getBounds();
         var ne = bounds.getNorthEast();
         var sw = bounds.getSouthWest();
+        //console.log(sw.lat(), sw.lng(), ne.lat(), ne.lng());
+      } else {
+        var lat = event.overlay.position.lat();
+        var lng = event.overlay.position.lng();
+        //console.log(lat, lng);
       }
 
       drawingManager.setOptions({
@@ -79,11 +85,11 @@ Phylotastic.Maps = {
     me.geocoder.geocode({
       'address': country
     },
-    function(results, status) {
-      if (status == google.maps.GeocoderStatus.OK) {
-        me.map.setCenter(results[0].geometry.location);
-      }
-    });
+      function(results, status) {
+        if (status == google.maps.GeocoderStatus.OK) {
+          me.map.setCenter(results[0].geometry.location);
+        }
+      });
   },
 
   setRectangularSelection: function() {
@@ -106,6 +112,34 @@ Phylotastic.Maps = {
         drawingModes: [google.maps.drawing.OverlayType.CIRCLE]
       }
     });
+  },
+
+  setPointSelection: function() {
+    this.clearOverlays();
+    this.drawingManager.setOptions({
+      drawingMode: google.maps.drawing.OverlayType.MARKER,
+      drawingControl: true,
+      drawingControlOptions: {
+        position: google.maps.ControlPosition.TOP_CENTER,
+        drawingModes: [google.maps.drawing.OverlayType.MARKER]
+      }
+    });
+  },
+
+  setCountrySelection: function() {
+    this.clearOverlays();
+    this.drawingManager.setOptions({
+      drawingMode: null,
+      drawingControl: false,
+    });
+  },
+
+  clearOverlays: function() {
+    var me = this;
+    if (me.currentOverlay !== undefined) {
+      me.currentOverlay.setMap(null);
+      delete me.currentOverlay;
+    }
   }
 
 };
