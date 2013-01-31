@@ -3,6 +3,8 @@
 use warnings;
 use strict;
 use CGI;
+use CGI;
+use CGI::Carp qw(warningsToBrowser fatalsToBrowser); 
 use LWP::UserAgent;
 use JSON;
 use Getopt::Long;
