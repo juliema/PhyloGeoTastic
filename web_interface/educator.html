@@ -12,7 +12,7 @@
   <script type="text/javascript" src="educator.js"></script>
   <script type="text/javascript" src="phylotastic_nojquery.js"></script>
 </head>
-<body>
+<body onload="load()">
 	<div class="header clearfix">
 		<a href="landing.html"><img class="fifty f_left" src="img/PhylogeotasticLogo.png"></a>
 		<img class="f_right" src="img/educator_head.png">
@@ -46,5 +46,19 @@
     </div>
     
     <div id="speciesWaiting" class="modal hide fade" aria-hidden="true"></div>
+
+		<div class="vis">
+			<div class="bigstep" id="vis">
+				<h3>Step 4:</h3><p>Visualize Your Data</p>
+				<div id="radio3">
+				    <input type="radio" id="rect" name="layout_radio" checked="checked" /><label for="rect">Rectangular</label>
+					<input type="radio" id="circ" name="layout_radio"/><label for="circ">Polar</label>
+				</div>
+				<div id="tree">
+				</div>
+			</div>
+		</div>
+	</div>
+
 </body>
 </html>
