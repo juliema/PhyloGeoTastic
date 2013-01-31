@@ -21,6 +21,8 @@ Phylotastic.App = {
   },
 
   sendApiQuery: function() {
+    var me = this;
+
     var script = 'get_species.pl';
     var source = Phylotastic.DataSources.currentSource;
 
@@ -32,19 +34,51 @@ Phylotastic.App = {
     params = Phylotastic.Utils.extend(params, mapParams);
 
     $('#speciesWaiting .speciesWaitingSource').text(source.label);
-    $('#speciesWaiting').modal({show: true});
+    $('#speciesWaiting').modal({
+      show: true
+    });
 
     $.ajax({
       url: this.serverBaseUrl + script,
       data: params,
       success: function(data, status, jqXhr) {
-        console.log("Got data back", data);
+        var tokens = data.split(/\n/);
+
+        var gotText = [
+          '<p>Found ' + tokens.length + ' species!</p>',
+          '<p>Contacting Phylo<em>tastic</em> to extract their evolutionary relationships...</p>', ].join('');
+        $('#speciesWaiting .modal-body').html(gotText);
+
+        me.sendPhyloTasticQuery(tokens);
+      }
+    });
+  },
+
+  sendPhyloTasticQuery: function(species) {
+    var params = {
+      species: species.join(';')
+    };
+    var script = "phylotastic.pl";
+
+    $.ajax({
+      url: this.serverBaseUrl + script,
+      data: params,
+      type: 'POST',
+      success: function(data, status, jqXhr) {
+        var tree = data;
+
+        var gotText = [
+          '<p>GOT YOUR TREE:',
+          tree,
+          '</p>'].join('');
+        $('#speciesWaiting .modal-body').html(gotText);
+
       }
     });
   },
 
   //serverBaseUrl: 'http://phylotastic-wg.nescent.org/~mg229/cgi-bin/'
-  serverBaseUrl: 'http://localhost/~greg/cgi-bin/'
+  serverBaseUrl: 'http://localhost/~greg/pgt/cgi-bin/',
 };
 
 $().ready(function() {
