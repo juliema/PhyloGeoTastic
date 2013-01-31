@@ -17,12 +17,10 @@ use Bio::Phylo::EvolutionaryModels qw (sample);
 # constants
 #----------------------------------------------------------------------
 
-use constant IS_CGI     => exists $ENV{'REQUEST_URI'};
-use constant URL_PREFIX => 'http://phylotastic-wg.nescent.org/~benv/cgi-bin/';
+use constant IS_CGI => exists $ENV{'REQUEST_URI'};
 
-my $http            = LWP::UserAgent->new();
-my $species         = "Homo sapiens;Rattus norvegicus;Mus musculus;Pan troglodytes";
-my $phylotastic_url = URL_PREFIX . 'phylotastic.pl';
+my $http    = LWP::UserAgent->new();
+my $species = "Homo sapiens;Rattus norvegicus;Mus musculus;Pan troglodytes";
 
 my $cgi = CGI->new();
 
@@ -37,10 +35,10 @@ if (IS_CGI) {
   die "Fail!" unless $getopt_success;
 }
 
-#my $newick_response = fetch_tree($species);
-my $newick_response = make_fake_tree($species);
+my $newick_response = fetch_tree($species);
+#my $newick_response = make_fake_tree($species);
 
-print $newick_response."\n";
+print $newick_response. "\n";
 
 sub make_fake_tree {
   my $species_string = shift;
@@ -59,8 +57,7 @@ sub make_fake_tree {
 
   my $tree = $sample->[0];
   my @tips = @{ $tree->get_terminals };
-  $tips[$_]->set_name($species[$_]) for 0 .. $#species;
-  
+  $tips[$_]->set_name( $species[$_] ) for 0 .. $#species;
 
   return $sample->[0]->to_newick;
 }
@@ -68,9 +65,22 @@ sub make_fake_tree {
 sub fetch_tree {
   my $species_string = shift;
 
-  my $response = $http->post( $phylotastic_url, Content => $species );
+  # We get semicolon-delimited on the input; convert to commas.
+  $species_string =~ s/;/,/g;
+
+  my $phylotastic_url = 'http://opentree-dev.bio.ku.edu:8000/architastic/auto/tree.json';
+  print "Calling phylotastic URL $phylotastic_url\n";
+  print "with species string $species_string\n";
+  $http->timeout( 60 * 10 );    # Timeout after 10 minutes...!
+
+  my $content_obj = {
+    taxa => $species_string
+  };
+  my $response = $http->post( $phylotastic_url, $content_obj );
   fatal( $response->status_line, IS_CGI, 500 ) unless ( $response->is_success );
+
   my $newick = $response->decoded_content();
+  print "GOT SOMETHING BACK: $newick\n";
   return $newick;
 }
 
