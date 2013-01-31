@@ -2,6 +2,7 @@
 
 use warnings;
 use strict;
+use Text::CSV;
 use CGI;
 use CGI;
 use CGI::Carp qw(warningsToBrowser fatalsToBrowser); 
@@ -18,8 +19,8 @@ my $longitude     = -109;
 my $radius        = 1000;
 my $ne_latitude   = 50;
 my $ne_longitude  = -100;
-my $service       = 'inaturalist';
-my $species_group = 'birds';
+my $service       = 'mapoflife';
+my $species_group = 'fishes';
 
 use constant IS_CGI => exists $ENV{'REQUEST_URI'};
 
@@ -55,6 +56,7 @@ if ( $service eq 'inaturalist' ) {
 } elsif ( $service eq 'iucn' ) {
 
 } elsif ( $service eq 'lampyr' ) {
+  
 
 }
 
@@ -125,11 +127,23 @@ sub search_inaturalist {
 sub search_map_of_life {
   my ( $lat, $lng, $r ) = @_;
 
+  # Massage the species group into something good.
+  my $taxon_name;
+  if ( $species_group eq 'birds' ) {
+    $taxon_name = 'jetz_maps';
+  } elsif ( $species_group eq 'mammals' ) {
+    $taxon_name = 'iucn_mammals';
+  } elsif ( $species_group eq 'amphibians' ) {
+    $taxon_name = 'iucn_amphibians';
+  } elsif ($species_group eq 'fishes') {
+    $taxon_name = 'na_fish';
+  }
+
   my @namearray = ();
   my %specieshash;
 
   my $tnrs_url =
-    "http://mol.cartodb.com/api/v2/sql?q=SELECT%20*%20FROM%20get_species_list_csv('jetz_maps',$lng,$lat,$r,'')&_=1359475900848&format=csv";
+    "http://mol.cartodb.com/api/v2/sql?q=SELECT%20*%20FROM%20get_species_list_csv('$taxon_name',$lng,$lat,$r,'')&_=1359475900848&format=csv";
   my $request_url = URI->new($tnrs_url);
 
   #submit request
@@ -137,6 +151,7 @@ sub search_map_of_life {
   my $response = $http->get($request_url);
   fatal( $response->status_line, IS_CGI, 500 ) unless ( $response->is_success );
   my $text = $response->decoded_content();
+  print "RESPONSE: $text\n";
   open my $text_handle, '<', \$text;
   my $csv = Text::CSV->new( { binary => 1 } );
   while ( my $row = $csv->getline($text_handle) ) {
