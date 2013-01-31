@@ -1,9 +1,7 @@
-#!/opt/local/bin/perl
+#!/usr/bin/perl
 
 use warnings;
 use strict;
-use Text::CSV;
-use CGI;
 use CGI;
 use CGI::Carp qw(warningsToBrowser fatalsToBrowser);
 use LWP::UserAgent;
