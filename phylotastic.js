@@ -11627,6 +11627,32 @@ window.Phylotastic = {
 };
 
 Phylotastic.Utils = {
+    bind: function(fn, scope, args, appendArgs) { // (Function, Object) -> Function
+      if (arguments.length === 2) {
+        return function() {
+          return fn.apply(scope, arguments);
+        };
+      }
+
+      if (appendArgs === undefined) {
+        appendArgs = true;
+      }
+
+      var method = fn,
+      slice = Array.prototype.slice;
+
+      return function() {
+        var callArgs = args || arguments;
+
+        if (appendArgs === true && args !== undefined) {
+          callArgs = slice.call(arguments, 0);
+          callArgs = callArgs.concat(args);
+        }
+        //console.log("Args", callArgs);
+        return method.apply(scope, callArgs);
+      };
+    },
+
     extend: function(dest) { // merge src properties into dest
       var sources = Array.prototype.slice.call(arguments, 1);
       for (var j = 0, len = sources.length, src; j < len; j++) {
@@ -11664,20 +11690,41 @@ Phylotastic.App = {
     }
   },
 
+  updateMapToSpecies: function() {},
+
+  getWaitingHtml: function() {
+    var source = Phylotastic.DataSources.currentSource;
+    return [
+    '<div class="modal-header">',
+    '  <h3>Contacting '+source.resourceLabel+'</h3>',
+    '</div>',
+    '<div class="modal-body">',
+    '  <p>',
+    'Communicating with '+source.resourceLabel+' to find species within',
+    ' the map area you selected.',
+    '  </p>',
+    '  <p>This may take a while, please be patient.</p>',
+    '</div>'
+    ].join('');
+  },
+
   sendApiQuery: function() {
     var me = this;
 
     var script = 'get_species.pl';
     var source = Phylotastic.DataSources.currentSource;
+    var species = Phylotastic.DataSources.currentSpecies;
 
     // Get the map parameters to send to the server-side script.
     var mapParams = Phylotastic.Maps.currentParams || {};
     var params = {
       service: source.id,
+      species_group: species.id
     };
     params = Phylotastic.Utils.extend(params, mapParams);
+    //console.log("CURRENT PARAMS", params);
 
-    $('#speciesWaiting .speciesWaitingSource').text(source.label);
+    $('#speciesWaiting').html(this.getWaitingHtml());
     $('#speciesWaiting').modal({
       show: true
     });
@@ -11686,14 +11733,47 @@ Phylotastic.App = {
       url: this.serverBaseUrl + script,
       data: params,
       success: function(data, status, jqXhr) {
-        var tokens = data.split(/\n/);
+        // Get some of the first common names to show the user.
+        var species = $(data);
 
-        var gotText = [
-          '<p>Found ' + tokens.length + ' species!</p>',
+        //console.log("Species", species.length);
+        var msg;
+
+        if (species.length > 0) {
+          var exampleCommonNames = [];
+          var allSpecies = [];
+          for (var i = 0; i < species.length; i++) {
+            var spec = species[i];
+            allSpecies.push(spec.taxon_name);
+
+            if (i < 5 && spec.common_name) {
+              exampleCommonNames.push(spec.common_name);
+            }
+          }
+
+          var exampleText = '';
+          if (exampleCommonNames.length > 0) {
+            exampleText = [
+              '<div class="examples">',
+              'Results include ',
+              exampleCommonNames.join(', '),
+              '</div>'].join('');
+          }
+
+          msg = [
+            'Found ' + allSpecies.length + ' species!',
+            exampleText].join('');
+
+        } else {
+          msg = '<p>No results found. Try a broader search.</p>';
+        }
+
+        var contactingNext = [
           '<p>Contacting Phylo<em>tastic</em> to extract their evolutionary relationships...</p>', ].join('');
-        $('#speciesWaiting .modal-body').html(gotText);
 
-        me.sendPhyloTasticQuery(tokens);
+        $('#speciesWaiting .modal-body').html(msg);
+
+        //me.sendPhyloTasticQuery(tokens);
       }
     });
   },
@@ -11758,7 +11838,7 @@ Phylotastic.Maps = {
       maxLat: 85,
       mapTypeControl: false,
       panControl: false,
-      zoomControl: false,
+      zoomControl: true,
       streetViewControl: false,
       mapTypeId: google.maps.MapTypeId.ROADMAP,
     };
@@ -11796,42 +11876,7 @@ Phylotastic.Maps = {
       console.log("Drag start!");
     });
 
-    google.maps.event.addListener(drawingManager, 'overlaycomplete', function(event) {
-      if (me.currentOverlay !== undefined) {
-        me.currentOverlay.setMap(null);
-        delete me.currentOverlay;
-      }
-      if (event.type === google.maps.drawing.OverlayType.CIRCLE) {
-        var radius = event.overlay.getRadius();
-        var center = event.overlay.getCenter();
-        me.currentParams = {
-          latitude: center.lat(),
-          longitude: center.lng()
-        };
-      } else if (event.type === google.maps.drawing.OverlayType.RECTANGLE) {
-        var bounds = event.overlay.getBounds();
-        var ne = bounds.getNorthEast();
-        var sw = bounds.getSouthWest();
-        me.currentParams = {
-          latitude: sw.lat(),
-          longitude: sw.lng(),
-          ne_latitude: ne.lat(),
-          ne_longitude: ne.lng()
-        };
-      } else {
-        var lat = event.overlay.position.lat();
-        var lng = event.overlay.position.lng();
-        me.currentParams = {
-          latitude: lat,
-          longitude: lng
-        };
-      }
-
-      drawingManager.setOptions({
-        drawingMode: null
-      });
-      me.currentOverlay = event.overlay;
-    });
+    google.maps.event.addListener(drawingManager, 'overlaycomplete', Phylotastic.Utils.bind(this.onShapeEvent, this));
 
     drawingManager.setMap(this.map);
 
@@ -11839,9 +11884,69 @@ Phylotastic.Maps = {
     this.geocoder = geocoder;
   },
 
+  getCircleParams: function(circle) {
+    var radius = circle.getRadius();
+    var center = circle.getCenter();
+    return {
+      latitude: center.lat(),
+      longitude: center.lng(),
+      radius: radius
+    };
+  },
+
+  getRectParams: function(rect) {
+    var bounds = rect.getBounds();
+    var ne = bounds.getNorthEast();
+    var sw = bounds.getSouthWest();
+    return {
+      latitude: sw.lat(),
+      longitude: sw.lng(),
+      ne_latitude: ne.lat(),
+      ne_longitude: ne.lng()
+    };
+  },
+
+  onShapeEvent: function(event) {
+    var me = this;
+    var drawingManager = me.drawingManager;
+
+    if (me.currentOverlay !== undefined) {
+      me.currentOverlay.setMap(null);
+      delete me.currentOverlay;
+    }
+    if (event.type === google.maps.drawing.OverlayType.CIRCLE) {
+      var circle = event.overlay;
+      me.currentParams = me.getCircleParams(circle);
+      google.maps.event.addListener(circle, 'radius_changed', function() {
+        me.currentParams = me.getCircleParams(circle);
+      });
+      google.maps.event.addListener(circle, 'center_changed', function() {
+        me.currentParams = me.getCircleParams(circle);
+      });
+    } else if (event.type === google.maps.drawing.OverlayType.RECTANGLE) {
+      var rect = event.overlay;
+      me.currentParams = me.getRectParams(rect);
+      google.maps.event.addListener(rect, 'bounds_changed', function() {
+        me.currentParams = me.getRectParams(rect);
+      });
+    } else {
+      var lat = event.overlay.position.lat();
+      var lng = event.overlay.position.lng();
+      me.currentParams = {
+        latitude: lat,
+        longitude: lng
+      };
+    }
+
+    drawingManager.setOptions({
+      drawingMode: null
+    });
+    me.currentOverlay = event.overlay;
+  },
+
   getParams: function() {
     var currentOverlay = this.currentOverlay;
-    
+
     console.log(currentOverlay);
   },
 
@@ -11912,24 +12017,28 @@ Phylotastic.Maps = {
 Phylotastic.DataSources = {
 
   currentSource: undefined,
+  currentSpecies: undefined,
 
   createDataSourceUI: function(el) {
     var me = this;
     var sources = [{
       id: 'inaturalist',
       label: 'Observations',
+      resourceLabel: 'iNaturalist',
       selectionType: 'rectangle',
       description: 'Find observations reported by citizen scientists from iNaturalist.org',
     },
     {
       id: 'iucn',
       label: 'Threatened Species',
+      resourceLabel: 'IUCN',
       selectionType: 'country-species',
       description: 'Find species that are threatened or endangered on the IUCN Red List',
     },
     {
       id: 'lampyr',
       label: 'Museum Records',
+      resourceLabel: 'GBIF',
       selectionType: 'point',
       description: 'Find species collected from museum records around the world',
     }];
@@ -11955,13 +12064,17 @@ Phylotastic.DataSources = {
   },
 
   onSpeciesClick: function(event, species) {
+    var button = species.button;
+    $('.species-btn.active').button('toggle');
+    button.button('toggle');
+
     this.currentSpecies = species;
     Phylotastic.App.updateMapToSpecies();
   },
 
   createSpeciesSourceUI: function(el) {
     var me = this;
-    var sources = [{
+    var species = [{
       id: 'mammals',
       label: 'Mammals',
     },
@@ -11974,15 +12087,18 @@ Phylotastic.DataSources = {
       label: 'Birds'
     }];
 
-    sources.forEach(function(source) {
-      var button = me.createButton(source.label, 'species-btn');
+    species.forEach(function(spec) {
+      var button = me.createButton(spec.label, 'species-btn');
+      spec.button = button;
 
       button.on('click', function(event) {
-        me.onSpeciesClick(event, source.id);
+        me.onSpeciesClick(event, spec);
       });
 
       $(el).append(button);
     });
+
+    this.onSpeciesClick(null, species[0]);      
   },
 
   createButton: function(text, cls) {
