@@ -21,6 +21,8 @@ my $ne_latitude   = 50;
 my $ne_longitude  = -100;
 my $service       = 'inaturalist';
 my $species_group = 'birds';
+my $common = "no";
+my $numspp = 1000;
 
 use constant IS_CGI => exists $ENV{'REQUEST_URI'};
 
@@ -56,6 +58,7 @@ if ( $service eq 'inaturalist' ) {
 } elsif ( $service eq 'iucn' ) {
 
 } elsif ( $service eq 'lampyr' ) {
+  search_lampyr ($latitude, $longitude, $common, $numspp)
 
 }
 
@@ -123,12 +126,11 @@ sub search_inaturalist {
       push @species, $data;
     }
   }
-
   print encode_json( \@species ) . "\n";
 }
 
 sub search_map_of_life {
-  my ( $lat, $lng, $r ) = @_;
+  my ( $lat, $lng, $r) = @_;
 
   # Massage the species group into something good.
   my $taxon_name;
@@ -163,6 +165,32 @@ sub search_map_of_life {
       };
   }
   return @results;
+}
+
+sub search_lampyr {
+  my ( $latitude, $longitude, $common, $numspp ) = @_;
+  my @namearray = ();
+  my %specieshash;
+  my $tnrs_url = 
+"http://www.lampyr.org/app/getNClosestTaxonIDSpeciesCommon.php?lat=$latitude&lon=$longitude&submit=submit-value&common=$common&N=$numspp";
+ my $request_url = URI->new($tnrs_url);
+
+  #submit request                                                                                                                                                #INFO("HTTP GET: $request_url");                                                                                                                           
+  my $response = $http->get($request_url);
+  fatal( $response->status_line, IS_CGI, 500 ) unless ( $response->is_success );
+  my $text = $response->decoded_content();
+  print "RESPONSE: $text\n";
+  open my $text_handle, '<', \$text;
+  my $csv = Text::CSV->new( { binary => 1 } );
+  while ( my $row = $csv->getline($text_handle) ) {
+    my @array = @{$row};
+    my $name  = $array[0];
+    if ( !exists $specieshash{$name} ) {
+      push @namearray, $name;
+      $specieshash{$name} = 1;
+    }
+  }
+  return @namearray;
 }
 
 # a 'die' method that works in both CGI and commandline context
