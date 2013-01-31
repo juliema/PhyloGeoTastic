@@ -20,20 +20,41 @@ Phylotastic.App = {
     }
   },
 
+  updateMapToSpecies: function() {},
+
+  getWaitingHtml: function() {
+    var source = Phylotastic.DataSources.currentSource;
+    return [
+    '<div class="modal-header">',
+    '  <h3>Contacting '+source.resourceLabel+'</h3>',
+    '</div>',
+    '<div class="modal-body">',
+    '  <p>',
+    'Communicating with '+source.resourceLabel+' to find species within',
+    ' the map area you selected.',
+    '  </p>',
+    '  <p>This may take a while, please be patient.</p>',
+    '</div>'
+    ].join('');
+  },
+
   sendApiQuery: function() {
     var me = this;
 
     var script = 'get_species.pl';
     var source = Phylotastic.DataSources.currentSource;
+    var species = Phylotastic.DataSources.currentSpecies;
 
     // Get the map parameters to send to the server-side script.
     var mapParams = Phylotastic.Maps.currentParams || {};
     var params = {
       service: source.id,
+      species_group: species.id
     };
     params = Phylotastic.Utils.extend(params, mapParams);
+    //console.log("CURRENT PARAMS", params);
 
-    $('#speciesWaiting .speciesWaitingSource').text(source.label);
+    $('#speciesWaiting').html(this.getWaitingHtml());
     $('#speciesWaiting').modal({
       show: true
     });
@@ -42,14 +63,47 @@ Phylotastic.App = {
       url: this.serverBaseUrl + script,
       data: params,
       success: function(data, status, jqXhr) {
-        var tokens = data.split(/\n/);
+        // Get some of the first common names to show the user.
+        var species = $(data);
 
-        var gotText = [
-          '<p>Found ' + tokens.length + ' species!</p>',
+        //console.log("Species", species.length);
+        var msg;
+
+        if (species.length > 0) {
+          var exampleCommonNames = [];
+          var allSpecies = [];
+          for (var i = 0; i < species.length; i++) {
+            var spec = species[i];
+            allSpecies.push(spec.taxon_name);
+
+            if (i < 5 && spec.common_name) {
+              exampleCommonNames.push(spec.common_name);
+            }
+          }
+
+          var exampleText = '';
+          if (exampleCommonNames.length > 0) {
+            exampleText = [
+              '<div class="examples">',
+              'Results include ',
+              exampleCommonNames.join(', '),
+              '</div>'].join('');
+          }
+
+          msg = [
+            'Found ' + allSpecies.length + ' species!',
+            exampleText].join('');
+
+        } else {
+          msg = '<p>No results found. Try a broader search.</p>';
+        }
+
+        var contactingNext = [
           '<p>Contacting Phylo<em>tastic</em> to extract their evolutionary relationships...</p>', ].join('');
-        $('#speciesWaiting .modal-body').html(gotText);
 
-        me.sendPhyloTasticQuery(tokens);
+        $('#speciesWaiting .modal-body').html(msg);
+
+        //me.sendPhyloTasticQuery(tokens);
       }
     });
   },

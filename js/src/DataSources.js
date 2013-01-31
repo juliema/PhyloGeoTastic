@@ -1,24 +1,28 @@
 Phylotastic.DataSources = {
 
   currentSource: undefined,
+  currentSpecies: undefined,
 
   createDataSourceUI: function(el) {
     var me = this;
     var sources = [{
       id: 'inaturalist',
       label: 'Observations',
+      resourceLabel: 'iNaturalist',
       selectionType: 'rectangle',
       description: 'Find observations reported by citizen scientists from iNaturalist.org',
     },
     {
       id: 'iucn',
       label: 'Threatened Species',
+      resourceLabel: 'IUCN',
       selectionType: 'country-species',
       description: 'Find species that are threatened or endangered on the IUCN Red List',
     },
     {
       id: 'lampyr',
       label: 'Museum Records',
+      resourceLabel: 'GBIF',
       selectionType: 'point',
       description: 'Find species collected from museum records around the world',
     }];
@@ -44,13 +48,17 @@ Phylotastic.DataSources = {
   },
 
   onSpeciesClick: function(event, species) {
+    var button = species.button;
+    $('.species-btn.active').button('toggle');
+    button.button('toggle');
+
     this.currentSpecies = species;
     Phylotastic.App.updateMapToSpecies();
   },
 
   createSpeciesSourceUI: function(el) {
     var me = this;
-    var sources = [{
+    var species = [{
       id: 'mammals',
       label: 'Mammals',
     },
@@ -63,15 +71,18 @@ Phylotastic.DataSources = {
       label: 'Birds'
     }];
 
-    sources.forEach(function(source) {
-      var button = me.createButton(source.label, 'species-btn');
+    species.forEach(function(spec) {
+      var button = me.createButton(spec.label, 'species-btn');
+      spec.button = button;
 
       button.on('click', function(event) {
-        me.onSpeciesClick(event, source.id);
+        me.onSpeciesClick(event, spec);
       });
 
       $(el).append(button);
     });
+
+    this.onSpeciesClick(null, species[0]);      
   },
 
   createButton: function(text, cls) {

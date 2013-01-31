@@ -10,7 +10,7 @@ Phylotastic.Maps = {
       maxLat: 85,
       mapTypeControl: false,
       panControl: false,
-      zoomControl: false,
+      zoomControl: true,
       streetViewControl: false,
       mapTypeId: google.maps.MapTypeId.ROADMAP,
     };
@@ -48,42 +48,7 @@ Phylotastic.Maps = {
       console.log("Drag start!");
     });
 
-    google.maps.event.addListener(drawingManager, 'overlaycomplete', function(event) {
-      if (me.currentOverlay !== undefined) {
-        me.currentOverlay.setMap(null);
-        delete me.currentOverlay;
-      }
-      if (event.type === google.maps.drawing.OverlayType.CIRCLE) {
-        var radius = event.overlay.getRadius();
-        var center = event.overlay.getCenter();
-        me.currentParams = {
-          latitude: center.lat(),
-          longitude: center.lng()
-        };
-      } else if (event.type === google.maps.drawing.OverlayType.RECTANGLE) {
-        var bounds = event.overlay.getBounds();
-        var ne = bounds.getNorthEast();
-        var sw = bounds.getSouthWest();
-        me.currentParams = {
-          latitude: sw.lat(),
-          longitude: sw.lng(),
-          ne_latitude: ne.lat(),
-          ne_longitude: ne.lng()
-        };
-      } else {
-        var lat = event.overlay.position.lat();
-        var lng = event.overlay.position.lng();
-        me.currentParams = {
-          latitude: lat,
-          longitude: lng
-        };
-      }
-
-      drawingManager.setOptions({
-        drawingMode: null
-      });
-      me.currentOverlay = event.overlay;
-    });
+    google.maps.event.addListener(drawingManager, 'overlaycomplete', Phylotastic.Utils.bind(this.onShapeEvent, this));
 
     drawingManager.setMap(this.map);
 
@@ -91,9 +56,69 @@ Phylotastic.Maps = {
     this.geocoder = geocoder;
   },
 
+  getCircleParams: function(circle) {
+    var radius = circle.getRadius();
+    var center = circle.getCenter();
+    return {
+      latitude: center.lat(),
+      longitude: center.lng(),
+      radius: radius
+    };
+  },
+
+  getRectParams: function(rect) {
+    var bounds = rect.getBounds();
+    var ne = bounds.getNorthEast();
+    var sw = bounds.getSouthWest();
+    return {
+      latitude: sw.lat(),
+      longitude: sw.lng(),
+      ne_latitude: ne.lat(),
+      ne_longitude: ne.lng()
+    };
+  },
+
+  onShapeEvent: function(event) {
+    var me = this;
+    var drawingManager = me.drawingManager;
+
+    if (me.currentOverlay !== undefined) {
+      me.currentOverlay.setMap(null);
+      delete me.currentOverlay;
+    }
+    if (event.type === google.maps.drawing.OverlayType.CIRCLE) {
+      var circle = event.overlay;
+      me.currentParams = me.getCircleParams(circle);
+      google.maps.event.addListener(circle, 'radius_changed', function() {
+        me.currentParams = me.getCircleParams(circle);
+      });
+      google.maps.event.addListener(circle, 'center_changed', function() {
+        me.currentParams = me.getCircleParams(circle);
+      });
+    } else if (event.type === google.maps.drawing.OverlayType.RECTANGLE) {
+      var rect = event.overlay;
+      me.currentParams = me.getRectParams(rect);
+      google.maps.event.addListener(rect, 'bounds_changed', function() {
+        me.currentParams = me.getRectParams(rect);
+      });
+    } else {
+      var lat = event.overlay.position.lat();
+      var lng = event.overlay.position.lng();
+      me.currentParams = {
+        latitude: lat,
+        longitude: lng
+      };
+    }
+
+    drawingManager.setOptions({
+      drawingMode: null
+    });
+    me.currentOverlay = event.overlay;
+  },
+
   getParams: function() {
     var currentOverlay = this.currentOverlay;
-    
+
     console.log(currentOverlay);
   },
 
