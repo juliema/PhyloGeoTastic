@@ -61,23 +61,27 @@ Phylotastic.DataSources = {
     var species = [{
       id: 'mammals',
       label: 'Mammals',
+      img: 'img/wolf_icon.png'
     },
     {
       id: 'fishes',
-      label: 'Fishes'
+      label: 'Fishes',
+      img: 'img/fish_icon.png'
     },
     {
       id: 'birds',
-      label: 'Birds'
+      label: 'Birds',
+      img: 'img/BlackHawkEagle_icon.png'
     },
     {
       id: 'plants',
-      label: 'Plants'
+      label: 'Plants',
+      img: 'img/Plant_Icon.png'
     },
     ];
 
     species.forEach(function(spec) {
-      var button = me.createButton(spec.label, 'species-btn');
+      var button = me.createButton('', 'species-btn', spec.img);
       spec.button = button;
 
       button.on('click', function(event) {
@@ -90,13 +94,19 @@ Phylotastic.DataSources = {
     this.onSpeciesClick(null, species[0]);
   },
 
-  createButton: function(text, cls) {
+  createButton: function(text, cls, img) {
     var classes = ['btn'];
     if (cls) {
       classes.push(cls);
     }
     var btn = $('<button type="button" class="' + classes.join(' ') + '">' + text + '</button>');
     $(btn).button();
+
+    if (img) {
+      var imgEl = $('<img class="btn-img" src="'+img+'">');
+      $(imgEl).appendTo(btn);
+    }
+
     return btn;
   }
 

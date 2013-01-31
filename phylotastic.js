@@ -11819,8 +11819,8 @@ Phylotastic.App = {
     });
   },
 
-  serverBaseUrl: 'http://phylotastic-wg.nescent.org/~gjuggler/PhyloGeoTastic/cgi-bin/'
-  //serverBaseUrl: 'http://localhost/~greg/pgt/cgi-bin/',
+  //serverBaseUrl: 'http://phylotastic-wg.nescent.org/~gjuggler/PhyloGeoTastic/cgi-bin/'
+  serverBaseUrl: 'http://localhost/~greg/pgt/cgi-bin/',
 };
 
 $().ready(function() {
@@ -11828,14 +11828,16 @@ $().ready(function() {
   Phylotastic.Maps.insertMap(el);
   Phylotastic.Maps.centerOnCountry('United States');
 
-  var sourcesEl = $('.sources')[0];
+  var sourcesEl = $('.sources-wrap')[0];
   Phylotastic.DataSources.createDataSourceUI(sourcesEl);
 
-  var speciesEl = $('.species')[0];
+  var speciesEl = $('.species-wrap')[0];
   Phylotastic.DataSources.createSpeciesSourceUI(speciesEl);
 
   var buttonEl = $('.go-button-wrap')[0];
-  var goButton = $('<button type="button" class="btn go-btn"></button>').appendTo(buttonEl);
+  var goButton = $(['<button type="button" class="btn go-btn">',
+                   '<img class="btn-img" src="img/go.png"/>',
+                   '</button>'].join('')).appendTo(buttonEl);
   $(goButton).button();
   $(goButton).on('click', function() {
 
@@ -12095,23 +12097,27 @@ Phylotastic.DataSources = {
     var species = [{
       id: 'mammals',
       label: 'Mammals',
+      img: 'img/wolf_icon.png'
     },
     {
       id: 'fishes',
-      label: 'Fishes'
+      label: 'Fishes',
+      img: 'img/fish_icon.png'
     },
     {
       id: 'birds',
-      label: 'Birds'
+      label: 'Birds',
+      img: 'img/BlackHawkEagle_icon.png'
     },
     {
       id: 'plants',
-      label: 'Plants'
+      label: 'Plants',
+      img: 'img/Plant_Icon.png'
     },
     ];
 
     species.forEach(function(spec) {
-      var button = me.createButton(spec.label, 'species-btn');
+      var button = me.createButton('', 'species-btn', spec.img);
       spec.button = button;
 
       button.on('click', function(event) {
@@ -12124,13 +12130,19 @@ Phylotastic.DataSources = {
     this.onSpeciesClick(null, species[0]);
   },
 
-  createButton: function(text, cls) {
+  createButton: function(text, cls, img) {
     var classes = ['btn'];
     if (cls) {
       classes.push(cls);
     }
     var btn = $('<button type="button" class="' + classes.join(' ') + '">' + text + '</button>');
     $(btn).button();
+
+    if (img) {
+      var imgEl = $('<img class="btn-img" src="'+img+'">');
+      $(imgEl).appendTo(btn);
+    }
+
     return btn;
   }
 
