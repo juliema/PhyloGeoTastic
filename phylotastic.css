@@ -9,6 +9,34 @@ h1 {
 }
 
 /* line 9, js/styles/phylotastic.scss */
+.examples {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+/* line 14, js/styles/phylotastic.scss */
+.example-image-wrap {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  display: inline-block;
+  margin: 5px;
+}
+
+/* line 22, js/styles/phylotastic.scss */
+.example-image {
+  border-radius: 8px;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
+  max-height: 90%;
+  max-width: 90%;
+}
+
+/* line 34, js/styles/phylotastic.scss */
 .panel {
   margin-top: 20px;
   margin-bottom: 20px;
@@ -18,13 +46,13 @@ h1 {
   -webkit-box-shadow: #bbbbbb 0px 2px 4px;
 }
 
-/* line 18, js/styles/phylotastic.scss */
+/* line 43, js/styles/phylotastic.scss */
 .map-wrap {
   width: 300px;
   height: 300px;
 }
 
-/* line 26, js/styles/phylotastic.scss */
+/* line 51, js/styles/phylotastic.scss */
 .source-btn {
   border-radius: 20px;
   width: 75%;
@@ -33,7 +61,7 @@ h1 {
   margin: 20px;
 }
 
-/* line 34, js/styles/phylotastic.scss */
+/* line 59, js/styles/phylotastic.scss */
 .species-btn {
   border-radius: 20px;
   width: 75%;
@@ -42,7 +70,7 @@ h1 {
   margin: 20px;
 }
 
-/* line 42, js/styles/phylotastic.scss */
+/* line 67, js/styles/phylotastic.scss */
 #map {
   width: 100%;
   height: 100%;
