@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>PhyloGeoTastic Educator Workflow</title>
+	<link rel="stylesheet" type="text/css" href="phylogeotastic.css">
+	<link rel="stylesheet" type="text/css" href="jquery-ui-1.8.16.custom.css">
+    <script type="text/javascript" src="d3.js"></script>
+	<script type="text/javascript" src="d3.layout.js"></script>
+	<script type="text/javascript" src="jquery-1.7.1.min.js"></script>
+	<script type="text/javascript" src="jquery-ui-1.8.17.custom.min.js"></script>
+    <script type="text/javascript" src="educator.js"></script>
+</head>
+<body onload="load()">
+	<div class="header clearfix">
+		<a href="landing.html"><img class="fifty f_left" src="img/PhylogeotasticLogo.png"></a>
+		<img class="f_right" src="img/educator_head.png">
+	</div>
+	<div class="content educator">
+		<div id="accordion">
+			<h3><a href="#">Data Selection</a></h3>
+			<div class="accordionSection">
+				<div class="steps clearfix">
+						<div class="step clearfix" id="step1">
+							<h3>Step 1:</h3><p>Select a data source</p>
+							<div id="radio2">
+							    <input type="radio" id="lampyr" name="source_radio" checked="checked" /><label for="lampyr">Lampyr</label>
+							    <input type="radio" id="inaturalist" name="source_radio" /><label for="inaturalist">iNaturalist</label>
+								<br>
+								<input type="radio" id="mapoflife" name="source_radio" /><label for="mapoflife">Map Of Life</label>
+							  </div>
+							  <input id="step1" class="nextbutton" type="submit" value="Next           >>" />
+						</div>
+						<div class="step dim clearfix" id="step2">
+							<h3>Step 2:</h3><p>Select a geographic area</p>
+							<div id="map">
+							</div>
+							<input id="step2" class="nextbutton" type="submit" value="Next           >>" />
+						</div>
+						<div class="step dim clearfix" id="step3">
+							<h3>Step 3:</h3><p>Select a type of organism</p>
+							<div id="radio">
+							    <input type="radio" id="mammal" name="species_radio" checked="checked" /><label for="mammal">Mammals <img class="icon" src="img/wolf_icon.png"></label>
+							    <input type="radio" id="bird" name="species_radio" /><label for="bird">Birds<img class="icon" src="img/BlackHawkEagle_icon.png"></label>
+								<br>
+								<input type="radio" id="micro" name="species_radio" /><label for="micro">Micro-organisms<img class="icon" src="img/Bacterium_Icon.png"></label>
+							    <input type="radio" id="plant" name="species_radio" /><label for="plant">Plants<img class="icon" src="img/Plant_Icon.png"></label>
+							  </div>
+							  <input id="step3" class="nextbutton" type="submit" value="Next           >>" />
+						</div>
+				</div>
+			</div>
+		</div>
+		<div class="vis">
+			<div class="bigstep" id="tree">
+				<h3>Step 4:</h3><p>Visualize Your Data</p>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,277 @@
+body {
+	width: 100%;
+	height: 100%;
+	font-family: Helvetica;
+}
+
+div.header {
+	text-align: center;
+	width: 100%;
+}
+
+div.overflow {
+	overflow: auto;
+}
+
+div.intro {
+	text-align: center;
+	width: 100%;
+}
+
+div.help {
+	background-color: #f1f1f1;
+	text-align: center;
+	width: 100%;
+}
+div.content {
+}
+
+div.steps {
+	background-color: #fff;
+	width: 100%;
+	float: left;
+	position: relative;
+}
+
+div.step {
+	margin: .25em;
+	background-color: #ddd;
+	width: 32.5%;
+	height: 650px;
+	float: left;
+	position: relative;
+}
+
+div#radio {
+	margin-top: 3em;
+	text-align: center;
+}
+
+div#radio2 {
+	margin-top: 3em;
+	text-align: center;
+}
+
+div.bigstep {
+	margin: .25em;
+	background-color: #ddd;
+	width: 100%;
+	float: left;
+}
+
+div.vis {
+	width: 100%;
+	background-color: #ddd;
+}
+
+div.footer {
+	float: right;
+}
+
+.nextbutton {
+	height: !important 30px;
+	float: right;
+	position: absolute;
+	right:    0;
+	bottom:   0;
+}
+
+.dim {
+	opacity: .2;
+	pointer-events: none;
+}
+
+.educator {
+	background-color: #ccc;
+}
+
+.researcher {
+	background-color: #069;
+}
+
+.f_right {
+	float: right;
+}
+
+.f_left {
+	float: left;
+}
+
+table.ops {
+	border-spacing: 0px;
+	border: 0px;
+	width: 100%;
+}
+
+td.left {
+	width: 50%;
+	height: 100%;
+	background-color: #09c;
+}
+
+td.right {
+	width: 50%;
+	height: 100%;
+	background-color: #069;
+}
+
+.species {
+	width: 200px; height: 200px;
+}
+
+img {
+	margin: 1em;
+}
+
+img.fifty {
+	width: 500px;
+}
+
+img.icon {
+	width: 140px;
+	float: left;
+}
+
+h2 {
+	margin: 0px;
+	padding: .5em;
+}
+
+a {
+	text-decoration: none;
+}
+
+p.intro {
+	margin: 0px;
+}
+
+/* d3 stuff */
+/*body {
+  background: url(texture-noise.png);
+  overflow: hidden;
+  margin: 0;
+  font-size: 14px;
+  font-family: "Helvetica Neue", Helvetica;
+}*/
+
+.node circle {
+  cursor: pointer;
+  fill: #fff;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+.node text {
+  font-size: 11px;
+}
+
+path.link {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+    
+
+#chart, #header, #footer {
+  position: absolute;
+  top: 0;
+}
+
+#header, #footer {
+  z-index: 1;
+  display: block;
+  font-size: 36px;
+  font-weight: 300;
+  text-shadow: 0 1px 0 #fff;
+}
+
+#header.inverted, #footer.inverted {
+  color: #fff;
+  text-shadow: 0 1px 4px #000;
+}
+
+#header {
+  top: 80px;
+  left: 140px;
+  width: 1000px;
+}
+
+#footer {
+  top: 680px;
+  right: 140px;
+  text-align: right;
+}
+
+rect {
+  fill: none;
+  pointer-events: all;
+}
+
+pre {
+  font-size: 18px;
+}
+
+line {
+  stroke: #000;
+  stroke-width: 1.5px;
+}
+
+.string, .regexp {
+  color: #f39;
+}
+
+.keyword {
+  color: #00c;
+}
+
+.comment {
+  color: #777;
+  font-style: oblique;
+}
+
+.number {
+  color: #369;
+}
+
+.class, .special {
+  color: #1181B8;
+}
+
+a:link, a:visited {
+  color: #000;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #666;
+}
+
+.hint {
+  position: absolute;
+  right: 0;
+  width: 1280px;
+  font-size: 12px;
+  color: #999;
+}
+
+/* Clearfix */
+.clearfix:after {
+    content: ".";
+    display: block;
+    clear: both;
+    visibility: hidden;
+    line-height: 0;
+    height: 0;
+}
+
+.clearfix {
+    display: inline-block;
+}
+
+html[xmlns] .clearfix {
+    display: block;
+}
+
+* html .clearfix {
+    heig
