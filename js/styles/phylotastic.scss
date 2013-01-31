@@ -6,6 +6,31 @@ h1 {
   color: red;
 }
 
+.examples {
+  margin-top: 10px;
+  margin-bottom: 10px;  
+}
+
+.example-image-wrap {
+  position:relative;                    
+  width: 80px;
+  height: 80px;
+  display: inline-block;
+  margin: 5px;
+}
+
+.example-image {
+  border-radius: 8px;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
+  max-height: 90%;
+  max-width: 90%;  
+}
+
 .panel {
   margin-top: 20px;
   margin-bottom: 20px;

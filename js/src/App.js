@@ -24,18 +24,17 @@ Phylotastic.App = {
 
   getWaitingHtml: function() {
     var source = Phylotastic.DataSources.currentSource;
-    return [
+    return[
     '<div class="modal-header">',
-    '  <h3>Contacting '+source.resourceLabel+'</h3>',
+    '  <h3>Contacting ' + source.resourceLabel + '</h3>',
     '</div>',
     '<div class="modal-body">',
     '  <p>',
-    'Communicating with '+source.resourceLabel+' to find species within',
+    'Communicating with ' + source.resourceLabel + ' to find species within',
     ' the map area you selected.',
     '  </p>',
     '  <p>This may take a while, please be patient.</p>',
-    '</div>'
-    ].join('');
+    '</div>'].join('');
   },
 
   sendApiQuery: function() {
@@ -53,7 +52,6 @@ Phylotastic.App = {
     };
     params = Phylotastic.Utils.extend(params, mapParams);
     //console.log("CURRENT PARAMS", params);
-
     $('#speciesWaiting').html(this.getWaitingHtml());
     $('#speciesWaiting').modal({
       show: true
@@ -70,23 +68,25 @@ Phylotastic.App = {
         var msg;
 
         if (species.length > 0) {
-          var exampleCommonNames = [];
+          var exampleImages = [];
           var allSpecies = [];
           for (var i = 0; i < species.length; i++) {
             var spec = species[i];
             allSpecies.push(spec.taxon_name);
 
-            if (i < 5 && spec.common_name) {
-              exampleCommonNames.push(spec.common_name);
+            if (i < 5 && spec.thumbnail) {
+              exampleImages.push([
+                '<div class="example-image-wrap">',
+                '  <img class="example-image" src="' + spec.thumbnail + '"></img>',
+                '</div>'].join(''));
             }
           }
 
           var exampleText = '';
-          if (exampleCommonNames.length > 0) {
+          if (exampleImages.length > 0) {
             exampleText = [
               '<div class="examples">',
-              'Results include ',
-              exampleCommonNames.join(', '),
+              exampleImages.join(''),
               '</div>'].join('');
           }
 
@@ -131,8 +131,8 @@ Phylotastic.App = {
     });
   },
 
-  //serverBaseUrl: 'http://phylotastic-wg.nescent.org/~mg229/cgi-bin/'
-  serverBaseUrl: 'http://localhost/~greg/pgt/cgi-bin/',
+  serverBaseUrl: 'http://phylotastic-wg.nescent.org/~gjuggler/PhyloGeoTastic/cgi-bin/'
+  //serverBaseUrl: 'http://localhost/~greg/pgt/cgi-bin/',
 };
 
 $().ready(function() {

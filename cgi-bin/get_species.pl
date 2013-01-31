@@ -2,8 +2,6 @@
 
 use warnings;
 use strict;
-use Text::CSV;
-use CGI;
 use CGI;
 use CGI::Carp qw(warningsToBrowser fatalsToBrowser);
 use LWP::UserAgent;
@@ -108,7 +106,7 @@ sub search_inaturalist {
 
     $n = scalar(@$arrayref);
     $page++;
-  } while ( $n > 0 );
+  } while ( $n > 0 && scalar(@all_results) < 400 );
 
   my @species;
   foreach my $row (@all_results) {
