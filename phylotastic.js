@@ -11730,6 +11730,9 @@ Phylotastic.App = {
     $.ajax({
       url: this.serverBaseUrl + script,
       data: params,
+      failure: function(jqXhr, error, exception) {
+
+      },
       success: function(data, status, jqXhr) {
         // Get some of the first common names to show the user.
         var species = $(data);
@@ -11744,11 +11747,18 @@ Phylotastic.App = {
             var spec = species[i];
             allSpecies.push(spec.taxon_name);
 
-            if (i < 5 && spec.thumbnail) {
-              exampleImages.push([
-                '<div class="example-image-wrap">',
-                '  <img class="example-image" src="' + spec.thumbnail + '"></img>',
-                '</div>'].join(''));
+            if (i < 5) {
+              if (spec.thumbnail) {
+                exampleImages.push([
+                  '<div class="example-image-wrap">',
+                  '  <img class="example-image" src="' + spec.thumbnail + '"></img>',
+                  '</div>'].join(''));
+              } else if (spec.common_name) {
+                exampleImages.push([
+                  '<div class="example-common-name">',
+                  spec.common_name,
+                  '</div>'].join(''));
+              }
             }
           }
 
@@ -11762,23 +11772,31 @@ Phylotastic.App = {
 
           msg = [
             'Found ' + allSpecies.length + ' species!',
-            exampleText].join('');
-
+            exampleText,
+            '<div>To explore their evolutionary relationships, <a href="#" id="send-ptastic-query">click here</a>.</div>'].join('');
         } else {
           msg = '<p>No results found. Try a broader search.</p>';
         }
 
-        var contactingNext = [
-          '<p>Contacting Phylo<em>tastic</em> to extract their evolutionary relationships...</p>', ].join('');
-
+        $('#speciesWaiting .modal-header').html('Results');
         $('#speciesWaiting .modal-body').html(msg);
 
-        //me.sendPhyloTasticQuery(tokens);
+        $('#send-ptastic-query').on('click', function() {
+          me.sendPhyloTasticQuery(allSpecies);
+        });
       }
     });
   },
 
   sendPhyloTasticQuery: function(species) {
+    var contactingNext = [
+      '<p>Contacting Phylo<em>tastic</em> to find evolutionary relationships...</p>',
+      '<p>This may take a while, please be patient.</p>'
+      ].join('');
+
+    $('#speciesWaiting .modal-header').html("<h3>Contacting PhyloTastic</h3>");
+    $('#speciesWaiting .modal-body').html(contactingNext);
+
     var params = {
       species: species.join(';')
     };
@@ -12023,21 +12041,21 @@ Phylotastic.DataSources = {
     var me = this;
     var sources = [{
       id: 'inaturalist',
-      label: 'Observations',
+      label: 'Citizen Observations',
       resourceLabel: 'iNaturalist',
       selectionType: 'rectangle',
       description: 'Find observations reported by citizen scientists from iNaturalist.org',
     },
     {
-      id: 'iucn',
-      label: 'Threatened Species',
-      resourceLabel: 'IUCN',
-      selectionType: 'country-species',
+      id: 'mapoflife',
+      label: 'Map of Life',
+      resourceLabel: 'Map of Life',
+      selectionType: 'circle',
       description: 'Find species that are threatened or endangered on the IUCN Red List',
     },
     {
       id: 'lampyr',
-      label: 'Museum Records',
+      label: 'Geolocated Museum Records',
       resourceLabel: 'GBIF',
       selectionType: 'point',
       description: 'Find species collected from museum records around the world',
@@ -12085,7 +12103,12 @@ Phylotastic.DataSources = {
     {
       id: 'birds',
       label: 'Birds'
-    }];
+    },
+    {
+      id: 'plants',
+      label: 'Plants'
+    },
+    ];
 
     species.forEach(function(spec) {
       var button = me.createButton(spec.label, 'species-btn');
@@ -12098,7 +12121,7 @@ Phylotastic.DataSources = {
       $(el).append(button);
     });
 
-    this.onSpeciesClick(null, species[0]);      
+    this.onSpeciesClick(null, species[0]);
   },
 
   createButton: function(text, cls) {

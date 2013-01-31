@@ -7,21 +7,21 @@ Phylotastic.DataSources = {
     var me = this;
     var sources = [{
       id: 'inaturalist',
-      label: 'Observations',
+      label: 'Citizen Observations',
       resourceLabel: 'iNaturalist',
       selectionType: 'rectangle',
       description: 'Find observations reported by citizen scientists from iNaturalist.org',
     },
     {
-      id: 'iucn',
-      label: 'Threatened Species',
-      resourceLabel: 'IUCN',
-      selectionType: 'country-species',
+      id: 'mapoflife',
+      label: 'Map of Life',
+      resourceLabel: 'Map of Life',
+      selectionType: 'circle',
       description: 'Find species that are threatened or endangered on the IUCN Red List',
     },
     {
       id: 'lampyr',
-      label: 'Museum Records',
+      label: 'Geolocated Museum Records',
       resourceLabel: 'GBIF',
       selectionType: 'point',
       description: 'Find species collected from museum records around the world',
@@ -69,7 +69,12 @@ Phylotastic.DataSources = {
     {
       id: 'birds',
       label: 'Birds'
-    }];
+    },
+    {
+      id: 'plants',
+      label: 'Plants'
+    },
+    ];
 
     species.forEach(function(spec) {
       var button = me.createButton(spec.label, 'species-btn');
@@ -82,7 +87,7 @@ Phylotastic.DataSources = {
       $(el).append(button);
     });
 
-    this.onSpeciesClick(null, species[0]);      
+    this.onSpeciesClick(null, species[0]);
   },
 
   createButton: function(text, cls) {

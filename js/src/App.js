@@ -60,6 +60,9 @@ Phylotastic.App = {
     $.ajax({
       url: this.serverBaseUrl + script,
       data: params,
+      failure: function(jqXhr, error, exception) {
+
+      },
       success: function(data, status, jqXhr) {
         // Get some of the first common names to show the user.
         var species = $(data);
@@ -74,11 +77,18 @@ Phylotastic.App = {
             var spec = species[i];
             allSpecies.push(spec.taxon_name);
 
-            if (i < 5 && spec.thumbnail) {
-              exampleImages.push([
-                '<div class="example-image-wrap">',
-                '  <img class="example-image" src="' + spec.thumbnail + '"></img>',
-                '</div>'].join(''));
+            if (i < 5) {
+              if (spec.thumbnail) {
+                exampleImages.push([
+                  '<div class="example-image-wrap">',
+                  '  <img class="example-image" src="' + spec.thumbnail + '"></img>',
+                  '</div>'].join(''));
+              } else if (spec.common_name) {
+                exampleImages.push([
+                  '<div class="example-common-name">',
+                  spec.common_name,
+                  '</div>'].join(''));
+              }
             }
           }
 
@@ -92,23 +102,31 @@ Phylotastic.App = {
 
           msg = [
             'Found ' + allSpecies.length + ' species!',
-            exampleText].join('');
-
+            exampleText,
+            '<div>To explore their evolutionary relationships, <a href="#" id="send-ptastic-query">click here</a>.</div>'].join('');
         } else {
           msg = '<p>No results found. Try a broader search.</p>';
         }
 
-        var contactingNext = [
-          '<p>Contacting Phylo<em>tastic</em> to extract their evolutionary relationships...</p>', ].join('');
-
+        $('#speciesWaiting .modal-header').html('Results');
         $('#speciesWaiting .modal-body').html(msg);
 
-        //me.sendPhyloTasticQuery(tokens);
+        $('#send-ptastic-query').on('click', function() {
+          me.sendPhyloTasticQuery(allSpecies);
+        });
       }
     });
   },
 
   sendPhyloTasticQuery: function(species) {
+    var contactingNext = [
+      '<p>Contacting Phylo<em>tastic</em> to find evolutionary relationships...</p>',
+      '<p>This may take a while, please be patient.</p>'
+      ].join('');
+
+    $('#speciesWaiting .modal-header').html("<h3>Contacting PhyloTastic</h3>");
+    $('#speciesWaiting .modal-body').html(contactingNext);
+
     var params = {
       species: species.join(';')
     };

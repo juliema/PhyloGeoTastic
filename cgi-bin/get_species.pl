@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/opt/local/bin/perl
 
 use warnings;
 use strict;
@@ -8,6 +8,7 @@ use LWP::UserAgent;
 use JSON;
 use Getopt::Long;
 use Data::Dumper;
+use HTML::TreeBuilder::XPath;
 
 my $http = LWP::UserAgent->new();
 my $cgi  = CGI->new();
@@ -17,10 +18,8 @@ my $longitude     = -109;
 my $radius        = 1000;
 my $ne_latitude   = 50;
 my $ne_longitude  = -100;
-my $service       = 'inaturalist';
+my $service       = 'mapoflife';
 my $species_group = 'birds';
-my $common = "no";
-my $numspp = 1000;
 
 use constant IS_CGI => exists $ENV{'REQUEST_URI'};
 
@@ -56,7 +55,7 @@ if ( $service eq 'inaturalist' ) {
 } elsif ( $service eq 'iucn' ) {
 
 } elsif ( $service eq 'lampyr' ) {
-  search_lampyr ($latitude, $longitude, $common, $numspp)
+  search_lampyr( $latitude, $longitude )
 
 }
 
@@ -74,6 +73,8 @@ sub search_inaturalist {
     $taxon_name = 'Actinopterygii';
   } elsif ( $species_group eq 'mammals' ) {
     $taxon_name = 'Mammalia';
+  } elsif ($species_group eq 'plants') {
+      $taxon_name = 'Plantae';
   }
 
   my %params = (
@@ -128,7 +129,7 @@ sub search_inaturalist {
 }
 
 sub search_map_of_life {
-  my ( $lat, $lng, $r) = @_;
+  my ( $lat, $lng, $r ) = @_;
 
   # Massage the species group into something good.
   my $taxon_name;
@@ -152,43 +153,72 @@ sub search_map_of_life {
 
   fatal( $response->status_line, IS_CGI, 500 ) unless ( $response->is_success );
 
-  my $arrayref = decode_json($response);
-  my @results;
-
+  my $text     = $response->decoded_content();
+  my $hashref = decode_json($text);
+  my $arrayref = $hashref->{rows};
+  my @species;
   foreach my $result (@$arrayref) {
-    push @results, {
+    push @species, {
       taxon_name  => $result->{scientificname},
       common_name => $result->{english},
       thumbnail   => $result->{thumbsrc}
       };
   }
-  return @results;
+
+  print $cgi->header( -status => 200, -type => 'application/json' ) if IS_CGI;
+  print encode_json( \@species ) . "\n";
 }
 
 sub search_lampyr {
-  my ( $latitude, $longitude, $common, $numspp ) = @_;
-  my @namearray = ();
-  my %specieshash;
-  my $tnrs_url = 
-"http://www.lampyr.org/app/getNClosestTaxonIDSpeciesCommon.php?lat=$latitude&lon=$longitude&submit=submit-value&common=$common&N=$numspp";
- my $request_url = URI->new($tnrs_url);
+  my ( $latitude, $longitude ) = @_;
 
-  #submit request                                                                                                                                                #INFO("HTTP GET: $request_url");                                                                                                                           
-  my $response = $http->get($request_url);
+  print $cgi->header( -status => 200, -type => 'application/json' ) if IS_CGI;
+
+  #print $cgi->header( -status => 200, -type => 'text/plain' ) if IS_CGI;
+
+  my %params = (
+    lat    => $latitude,
+    lon    => $longitude,
+    common => 'yes',
+    N      => 100,
+    submit => 'submit-value'
+  );
+  my $url = URI->new("http://www.lampyr.org/app/getNClosestTaxonIDSpeciesCommon.php");
+  $url->query_form(%params);
+  my $response = $http->get($url);
+
   fatal( $response->status_line, IS_CGI, 500 ) unless ( $response->is_success );
-  my $text = $response->decoded_content();
-  print "RESPONSE: $text\n";
-  open my $text_handle, '<', \$text;
-  my $csv = Text::CSV->new( { binary => 1 } );
-  while ( my $row = $csv->getline($text_handle) ) {
-    my @array = @{$row};
-    my $name  = $array[0];
-    if ( !exists $specieshash{$name} ) {
-      push @namearray, $name;
-      $specieshash{$name} = 1;
+
+  my $text = $response->content;
+
+  #print "CONTENT: $text\n";
+  my $tree = HTML::TreeBuilder::XPath->new;
+  $tree->parse_content($text);
+  my @nodes = $tree->findnodes(q{//li/a});
+
+  my @species;
+  foreach my $node (@nodes) {
+    my $object           = {};
+    my @content          = $node->content_list();
+    my $seen_common_name = 0;
+    foreach my $el (@content) {
+      if ( ref($el) ) {
+        if ( $el->tag eq 'i' ) {
+          $object->{taxon_name} = $el->as_text;
+        }
+      } else {
+        if ( !$seen_common_name ) {
+          my $str = $el;
+          $str =~ s/^\s+//g;
+          $object->{common_name} = $str;
+          $seen_common_name = 1;
+        }
+      }
     }
+    push @species, $object;
   }
-  return @namearray;
+
+  print encode_json( \@species ) . "\n";
 }
 
 # a 'die' method that works in both CGI and commandline context
