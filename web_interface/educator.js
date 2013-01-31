@@ -1,12 +1,4 @@
 function load() {  
-	$(function() {
-	    $( "#radio" ).buttonset();
-	  });
-	  
-  	$(function() {
-  	    $( "#radio2" ).buttonset();
-  	  });
-	  
     $(function() {
         $( "#radio3" ).buttonset();
       });
@@ -22,23 +14,7 @@ function load() {
         	makeCircTree("flare.json");
         }
 	  );
-      });
-	  
-	$(function() {
-	    $( "input[type=submit]" )
-	      .button()
-	      .click(function( event ) {
-	        event.preventDefault();
-			nextStep(event.currentTarget.id);
-	      });
-	  });
-		
-	$(function() {
-		$("#accordion").accordion({
-			collapsible: true,
-			fillSpace: true
-		});
-	});
+      });	  
 }
 
 function nextStep(stepid) {

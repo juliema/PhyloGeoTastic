@@ -12114,6 +12114,12 @@ Phylotastic.DataSources = {
       label: 'Plants',
       img: 'img/Plant_Icon.png'
     },
+    {
+      id: 'bacteria',
+      label: 'Bacteria',
+      img: 'img/Bacterium_Icon.png'
+    },
+
     ];
 
     species.forEach(function(spec) {
