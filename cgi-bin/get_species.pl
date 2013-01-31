@@ -5,7 +5,7 @@ use strict;
 use Text::CSV;
 use CGI;
 use CGI;
-use CGI::Carp qw(warningsToBrowser fatalsToBrowser); 
+use CGI::Carp qw(warningsToBrowser fatalsToBrowser);
 use LWP::UserAgent;
 use JSON;
 use Getopt::Long;
@@ -19,8 +19,8 @@ my $longitude     = -109;
 my $radius        = 1000;
 my $ne_latitude   = 50;
 my $ne_longitude  = -100;
-my $service       = 'mapoflife';
-my $species_group = 'fishes';
+my $service       = 'inaturalist';
+my $species_group = 'birds';
 
 use constant IS_CGI => exists $ENV{'REQUEST_URI'};
 
@@ -56,7 +56,6 @@ if ( $service eq 'inaturalist' ) {
 } elsif ( $service eq 'iucn' ) {
 
 } elsif ( $service eq 'lampyr' ) {
-  
 
 }
 
@@ -64,7 +63,7 @@ sub search_inaturalist {
   my @namearray = ();
   my %specieshash;
 
-  print $cgi->header(-status => 200, -type => 'application/json') if IS_CGI;
+  print $cgi->header( -status => 200, -type => 'application/json' ) if IS_CGI;
 
   # Massage the species group into something good.
   my $taxon_name;
@@ -114,14 +113,18 @@ sub search_inaturalist {
     #print Dumper($row);
 
     if ( $row->{taxon} && $row->{taxon}->{rank} eq 'species' ) {
-      push @species, {
+      my $data = {
         taxon_name  => $row->{taxon}->{name},
-        common_name => $row->{species_guess}
-        };
+        common_name => $row->{species_guess},
+      };
+      if ( $row->{photos} && $row->{photos}->[0] ) {
+        $data->{thumbnail} = $row->{photos}->[0]->{thumb_url};
+      }
+      push @species, $data;
     }
   }
 
-  print encode_json( \@species )."\n";
+  print encode_json( \@species ) . "\n";
 }
 
 sub search_map_of_life {
@@ -135,7 +138,7 @@ sub search_map_of_life {
     $taxon_name = 'iucn_mammals';
   } elsif ( $species_group eq 'amphibians' ) {
     $taxon_name = 'iucn_amphibians';
-  } elsif ($species_group eq 'fishes') {
+  } elsif ( $species_group eq 'fishes' ) {
     $taxon_name = 'na_fish';
   }
 
@@ -143,26 +146,23 @@ sub search_map_of_life {
   my %specieshash;
 
   my $tnrs_url =
-    "http://mol.cartodb.com/api/v2/sql?q=SELECT%20*%20FROM%20get_species_list_csv('$taxon_name',$lng,$lat,$r,'')&_=1359475900848&format=csv";
+    "http://mol.cartodb.com/api/v2/sql?q=SELECT%20*%20FROM%20get_species_list('$taxon_name',$lng,$lat,$r,'')&_=1359475900848&format=json";
   my $request_url = URI->new($tnrs_url);
+  my $response    = $http->get($request_url);
 
-  #submit request
-  #INFO("HTTP GET: $request_url");
-  my $response = $http->get($request_url);
   fatal( $response->status_line, IS_CGI, 500 ) unless ( $response->is_success );
-  my $text = $response->decoded_content();
-  print "RESPONSE: $text\n";
-  open my $text_handle, '<', \$text;
-  my $csv = Text::CSV->new( { binary => 1 } );
-  while ( my $row = $csv->getline($text_handle) ) {
-    my @array = @{$row};
-    my $name  = $array[0];
-    if ( !exists $specieshash{$name} ) {
-      push @namearray, $name;
-      $specieshash{$name} = 1;
-    }
+
+  my $arrayref = decode_json($response);
+  my @results;
+
+  foreach my $result (@$arrayref) {
+    push @results, {
+      taxon_name  => $result->{scientificname},
+      common_name => $result->{english},
+      thumbnail   => $result->{thumbsrc}
+      };
   }
-  return @namearray;
+  return @results;
 }
 
 # a 'die' method that works in both CGI and commandline context
