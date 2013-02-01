@@ -1,4 +1,4 @@
-#!/opt/local/bin/perl
+#!/usr/bin/perl
 
 use strict;
 use warnings;
@@ -20,7 +20,9 @@ use Bio::Phylo::EvolutionaryModels qw (sample);
 use constant IS_CGI => exists $ENV{'REQUEST_URI'};
 
 my $http    = LWP::UserAgent->new();
-my $species = "Homo sapiens;Rattus norvegicus;Mus musculus;Pan troglodytes";
+my $species = "Junco hyemalis;Carpodacus cassinii;Lanius excubitor";
+my $group = '';
+my $treestore = 'opentree';
 
 my $cgi = CGI->new();
 
@@ -35,10 +37,9 @@ if (IS_CGI) {
   die "Fail!" unless $getopt_success;
 }
 
-#my $newick_response = fetch_tree($species);
-my $newick_response = make_fake_tree($species);
-
-print $newick_response. "\n";
+my $newick_response = fetch_tree($species, $group);
+#my $newick_response = make_fake_tree($species);
+print $newick_response;
 
 sub make_fake_tree {
   my $species_string = shift;
@@ -64,23 +65,37 @@ sub make_fake_tree {
 
 sub fetch_tree {
   my $species_string = shift;
+  my $group = shift;
 
   # We get semicolon-delimited on the input; convert to commas.
   $species_string =~ s/;/,/g;
 
-  my $phylotastic_url = 'http://opentree-dev.bio.ku.edu:8000/architastic/auto/tree.json';
-  print "Calling phylotastic URL $phylotastic_url\n";
-  print "with species string $species_string\n";
+  my $url = 'http://opentree-dev.bio.ku.edu/architastic/tree/fullqueryopentree';
+  #my $url = 'http://opentree-dev.bio.ku.edu/architastic/auto/tree';
+
+  #print "Calling phylotastic URL $phylotastic_url\n";
+  #print "with species string $species_string\n";
   $http->timeout( 60 * 10 );    # Timeout after 10 minutes...!
 
   my $content_obj = {
     taxa => $species_string
   };
-  my $response = $http->post( $phylotastic_url, $content_obj );
+
+  if ($group ne '') {
+      $content_obj->{contextName} = $group;
+  }
+
+  if ($treestore ne '') {
+      $content_obj->{treestore} = $treestore;
+  }
+  #print "URL $url\n";
+  my $response = $http->post( $url, $content_obj );
   fatal( $response->status_line, IS_CGI, 500 ) unless ( $response->is_success );
 
-  my $newick = $response->decoded_content();
-  print "GOT SOMETHING BACK: $newick\n";
+  my $newick = $response->content;
+  #print "GOT SOMETHING BACK: $newick\n";
+  #$newick =~ s/\\\"\\n\\\"//g;
+
   return $newick;
 }
 

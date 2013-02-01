@@ -4,10 +4,32 @@
     <title>PhyloGeoTastic: Tree Results</title>
 	<link rel="stylesheet" type="text/css" href="phylogeotastic.css">
 	<link rel="stylesheet" type="text/css" href="jquery-ui-1.8.16.custom.css">
-    <script type="text/javascript" src="d3.js"></script>
-	<script type="text/javascript" src="d3.layout.js"></script>
-	<script type="text/javascript" src="jquery-1.7.1.min.js"></script>
-	<script type="text/javascript" src="jquery-ui-1.8.17.custom.min.js"></script>
+
+  <link rel="stylesheet" type="text/css" type="text/css">
+.node circle {
+  fill: #fff;
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+.node, text {
+  font: 10px sans-serif;
+}
+
+.link {
+  fill: none;
+  stroke: #ccc;
+  stroke-width: 1.5px;
+}
+
+text {
+  fill: #000;
+}
+</style>
+
+  <script type="text/javascript" src="d3.min.js"></script>
+	<script type="text/javascript" src="d3.layout.min.js"></script>
+
 </head>
 <body>
 	<div class="header clearfix">
@@ -17,10 +39,9 @@
 	<div class="content">
     
     <div class="tree-intro"></div>
-
-		<div class="vis">
-			<div id="tree">
-			</div>
+			<div id="vis">
+  	  <script type="text/javascript" src="newick.js"></script>
+      <script type="text/javascript" src="treeView.js"></script>
 		</div>
 	</div>
 </body>

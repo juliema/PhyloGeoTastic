@@ -11664,7 +11664,25 @@ Phylotastic.App = {
       break;
     }
 
+    // Update the "info panel" with source-specific information.
     $('#infopanel').html(curSource.infoPanel);
+
+    // Gray out any species buttons which aren't allowed.
+    var species = Phylotastic.DataSources.species;
+    var allowedSpecies = curSource.allowedSpeciesFilters;
+
+    for (var i=0; i < species.length; i++) {
+      var x = species[i];
+      x.button.addClass('disabled');
+      for (var j=0; j < allowedSpecies.length; j++) {
+        var y = allowedSpecies[j];
+        if (x.id === y) {
+          x.button.removeClass('disabled');
+        }
+      }
+    }
+
+    Phylotastic.Maps.clearOverlays();
   },
 
   updateMapToSpecies: function() {},
@@ -11772,11 +11790,11 @@ Phylotastic.App = {
         $('#speciesWaiting .modal-header').html('Results');
         $('#speciesWaiting .modal-body').html(msg);
 
-        console.log("All species:");
-        console.log(allSpecies.join('\n'));
+        //console.log("All species:");
+        //console.log(allSpecies.join('\n'));
 
-        console.log("All common names:");
-        console.log(allCommonNames.join('\n'));
+        //console.log("All common names:");
+        //console.log(allCommonNames.join('\n'));
 
         $('#send-ptastic-query').on('click', function() {
           me.sendPhyloTasticQuery(allSpecies);
@@ -11804,11 +11822,22 @@ Phylotastic.App = {
       type: 'POST',
       success: function(data, status, jqXhr) {
         var tree = data;
+        console.log("TREE", tree);
+
+        tree = tree.replace(/&quot;/g, '');
+        tree = tree.replace(/"/g, '');
+
+        var url = ['./treeView.html?tree=',
+                   tree+'',
+                   ''].join('');
 
         var gotText = [
-          '<p>GOT YOUR TREE:',
-          tree,
+          '<p>Found the evolutionary tree connecting your species!',
+          '</p><p>',
+          '<a target="_blank" href="'+url+'">Click here</a>',
+          ' to visualize the tree in a new window.',
           '</p>'].join('');
+
         $('#speciesWaiting .modal-body').html(gotText);
 
       }
@@ -11836,6 +11865,11 @@ $().ready(function() {
 
   var speciesEl = $('.species-wrap')[0];
   Phylotastic.DataSources.createSpeciesSourceUI(speciesEl);
+
+  // Click "iNaturalist" and "mammals"
+  Phylotastic.DataSources.onDataSourceClick(null, Phylotastic.DataSources.sources[0]);
+  Phylotastic.DataSources.onSpeciesClick(null, Phylotastic.DataSources.species[0]);
+
 
   var buttonEl = $('.go-button-wrap')[0];
   var goButton = $(['<button type="button" class="btn go-btn">',
@@ -12050,13 +12084,17 @@ Phylotastic.DataSources = {
       resourceLabel: 'iNaturalist',
       selectionType: 'rectangle',
       description: ['Find observations reported by citizen scientists from ',
-                    'iNaturalist'].join(''),
-      infoPanel: 'Select a rectangular area to search observations submitted to iNaturalist.org',
+        'iNaturalist.org'].join(''),
+      infoPanel: ['<p>',
+        'The database <a href="http://inaturalist.org">iNaturalist</a> ',
+        'contains observations recorded by naturalists around the world.',
+        '</p>',
+        'Use the map tools to draw a box around any area. Optionally select a species group to filter your results.',
+        '</p>'].join(''),
       allowedSpeciesFilters: [
-        'birds', 'fishes', 'mammals', 'plants'
-      ]
+        'birds', 'fishes', 'mammals', 'plants']
     },
-    {
+/*    {
       id: 'mapoflife',
       label: 'Map of Life',
       resourceLabel: 'Map of Life',
@@ -12064,19 +12102,23 @@ Phylotastic.DataSources = {
       description: 'Find species recorded in the Map of Life project',
       infoPanel: '',
       allowedSpeciesFilters: [
-        'birds', 'mammals', 'amphibians', 'fishes'
-      ]
+        'birds', 'mammals', 'amphibians', 'fishes']
     },
+*/
     {
       id: 'lampyr',
-      label: 'Museum Records',
-      resourceLabel: 'GBIF',
+      label: 'GBIF',
+      resourceLabel: 'Global Biodiversity Information Facility (GBIF)',
       selectionType: 'point',
-      description: 'Find species locations collected from museum records around the world',
-      infoPanel: 'Place a marker to search for recorded museum records.',
-      allowedSpeciesFilters: [
-      ]
+      description: 'Find species locations collected from museum records and other sources around the world',
+      infoPanel: ['<p>',
+        'The Global Biodiversity Information Facility (<a href="http://www.gbif.org/">GBIF</a>) database contains',
+        'species that scientists have been found in a given area.',
+        '</p>',
+        '<p>Use the map tools to drop a marker in your area of interest. We will get a list of the 100 nearest organisms.</p>'].join(''),
+      allowedSpeciesFilters: []
     }];
+    this.sources = sources;
 
     sources.forEach(function(source) {
       var button = me.createButton(source.label, 'source-btn');
@@ -12085,20 +12127,20 @@ Phylotastic.DataSources = {
         me.onDataSourceClick(event, source);
       });
       button.hover(function(event) {
-        console.log("Button hover");
+        //console.log("Button hover");
         $(button).popover({
           html: true,
           content: source.description,
-          title: source.resourceLabel  
+          title: source.resourceLabel
         });
         $(button).popover('show');
-      }, function(event) {
+      },
+      function(event) {
         $(button).popover('destroy')
       });
       $(el).append(button);
     });
 
-    this.onDataSourceClick(null, sources[0]);
   },
   onDataSourceClick: function(event, source) {
     var button = source.button;
@@ -12107,8 +12149,7 @@ Phylotastic.DataSources = {
 
     //console.log(source.infoPanel);
     //$('#infopanel').html('<div>'+source.infoPanel+'</div>'
-      //);
-
+    //);
     this.currentSource = source;
     Phylotastic.App.updateMapToSource();
   },
@@ -12127,17 +12168,17 @@ Phylotastic.DataSources = {
     var species = [{
       id: 'mammals',
       label: 'Mammals',
-      img: 'img/wolf_icon.png'
+      img: 'img/Wolf_Icon.png'
     },
-    {
-      id: 'fishes',
-      label: 'Fishes',
-      img: 'img/fish_icon.png'
-    },
+    //    {
+    //      id: 'fishes',
+    //      label: 'Fishes',
+    //      img: 'img/Fish_Icon.png'
+    //    },
     {
       id: 'birds',
       label: 'Birds',
-      img: 'img/BlackHawkEagle_icon.png'
+      img: 'img/BlackHawkEagle_Icon.png'
     },
     {
       id: 'plants',
@@ -12149,21 +12190,42 @@ Phylotastic.DataSources = {
       label: 'Bacteria',
       img: 'img/Bacterium_Icon.png'
     },
-
     ];
+    this.species = species;
 
     species.forEach(function(spec) {
       var button = me.createButton('', 'species-btn', spec.img);
       spec.button = button;
 
+      button.hover(function(event) {
+        var msg = 'Search for ' + spec.label;
+        var title = spec.label;
+        if (button.hasClass('disabled')) {
+          var curSource = Phylotastic.DataSources.currentSource;
+          msg = 'This filter does not work with ' + curSource.label;
+          title = 'Not Available';
+        }
+        $(button).popover({
+          html: true,
+          placement: 'left',
+          content: msg,
+          title: title
+        });
+        $(button).popover('show');
+      },
+      function(event) {
+        $(button).popover('destroy')
+      });
+
       button.on('click', function(event) {
-        me.onSpeciesClick(event, spec);
+        if (!button.hasClass('disabled')) {
+          me.onSpeciesClick(event, spec);
+        }
       });
 
       $(el).append(button);
     });
 
-    this.onSpeciesClick(null, species[0]);
   },
 
   createButton: function(text, cls, img) {
@@ -12175,7 +12237,7 @@ Phylotastic.DataSources = {
     $(btn).button();
 
     if (img) {
-      var imgEl = $('<img class="btn-img" src="'+img+'">');
+      var imgEl = $('<img class="btn-img" src="' + img + '">');
       $(imgEl).appendTo(btn);
     }
 

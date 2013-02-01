@@ -18,7 +18,25 @@ Phylotastic.App = {
       break;
     }
 
+    // Update the "info panel" with source-specific information.
     $('#infopanel').html(curSource.infoPanel);
+
+    // Gray out any species buttons which aren't allowed.
+    var species = Phylotastic.DataSources.species;
+    var allowedSpecies = curSource.allowedSpeciesFilters;
+
+    for (var i=0; i < species.length; i++) {
+      var x = species[i];
+      x.button.addClass('disabled');
+      for (var j=0; j < allowedSpecies.length; j++) {
+        var y = allowedSpecies[j];
+        if (x.id === y) {
+          x.button.removeClass('disabled');
+        }
+      }
+    }
+
+    Phylotastic.Maps.clearOverlays();
   },
 
   updateMapToSpecies: function() {},
@@ -126,11 +144,11 @@ Phylotastic.App = {
         $('#speciesWaiting .modal-header').html('Results');
         $('#speciesWaiting .modal-body').html(msg);
 
-        console.log("All species:");
-        console.log(allSpecies.join('\n'));
+        //console.log("All species:");
+        //console.log(allSpecies.join('\n'));
 
-        console.log("All common names:");
-        console.log(allCommonNames.join('\n'));
+        //console.log("All common names:");
+        //console.log(allCommonNames.join('\n'));
 
         $('#send-ptastic-query').on('click', function() {
           me.sendPhyloTasticQuery(allSpecies);
@@ -158,11 +176,22 @@ Phylotastic.App = {
       type: 'POST',
       success: function(data, status, jqXhr) {
         var tree = data;
+        console.log("TREE", tree);
+
+        tree = tree.replace(/&quot;/g, '');
+        tree = tree.replace(/"/g, '');
+
+        var url = ['./treeView.html?tree=',
+                   tree+'',
+                   ''].join('');
 
         var gotText = [
-          '<p>GOT YOUR TREE:',
-          tree,
+          '<p>Found the evolutionary tree connecting your species!',
+          '</p><p>',
+          '<a target="_blank" href="'+url+'">Click here</a>',
+          ' to visualize the tree in a new window.',
           '</p>'].join('');
+
         $('#speciesWaiting .modal-body').html(gotText);
 
       }
@@ -190,6 +219,11 @@ $().ready(function() {
 
   var speciesEl = $('.species-wrap')[0];
   Phylotastic.DataSources.createSpeciesSourceUI(speciesEl);
+
+  // Click "iNaturalist" and "mammals"
+  Phylotastic.DataSources.onDataSourceClick(null, Phylotastic.DataSources.sources[0]);
+  Phylotastic.DataSources.onSpeciesClick(null, Phylotastic.DataSources.species[0]);
+
 
   var buttonEl = $('.go-button-wrap')[0];
   var goButton = $(['<button type="button" class="btn go-btn">',
