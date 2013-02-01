@@ -1,8 +1,14 @@
-#!/opt/local/bin/perl
+#!/usr/bin/perl
 
 use warnings;
 use strict;
 use CGI;
+
+use constant IS_CGI => exists $ENV{'REQUEST_URI'};
+if (IS_CGI) {
+    use lib '/home/gjuggler/perl5/lib/perl5';
+}
+
 use CGI::Carp qw(warningsToBrowser fatalsToBrowser);
 use LWP::UserAgent;
 use JSON;
@@ -21,7 +27,6 @@ my $ne_longitude  = -100;
 my $service       = 'mapoflife';
 my $species_group = 'birds';
 
-use constant IS_CGI => exists $ENV{'REQUEST_URI'};
 
 if (IS_CGI) {
   $latitude      = $cgi->param('latitude')      if $cgi->param('latitude');
