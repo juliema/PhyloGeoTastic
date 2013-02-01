@@ -11598,30 +11598,6 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
 
 
 }(window.jQuery);
-
-
-window.google = window.google || {};
-google.maps = google.maps || {};
-(function() {
-  
-  function getScript(src) {
-    document.write('<' + 'script src="' + src + '"' +
-                   ' type="text/javascript"><' + '/script>');
-  }
-  
-  var modules = google.maps.modules = {};
-  google.maps.__gjsload__ = function(name, text) {
-    modules[name] = text;
-  };
-  
-  google.maps.Load = function(apiLoad) {
-    delete google.maps.Load;
-    apiLoad([0.009999999776482582,[[["http://mt0.googleapis.com/vt?lyrs=m@207000000\u0026src=api\u0026hl=en-US\u0026","http://mt1.googleapis.com/vt?lyrs=m@207000000\u0026src=api\u0026hl=en-US\u0026"],null,null,null,null,"m@207000000"],[["http://khm0.googleapis.com/kh?v=124\u0026hl=en-US\u0026","http://khm1.googleapis.com/kh?v=124\u0026hl=en-US\u0026"],null,null,null,1,"124"],[["http://mt0.googleapis.com/vt?lyrs=h@207000000\u0026src=api\u0026hl=en-US\u0026","http://mt1.googleapis.com/vt?lyrs=h@207000000\u0026src=api\u0026hl=en-US\u0026"],null,null,"imgtp=png32\u0026",null,"h@207000000"],[["http://mt0.googleapis.com/vt?lyrs=t@130,r@207000000\u0026src=api\u0026hl=en-US\u0026","http://mt1.googleapis.com/vt?lyrs=t@130,r@207000000\u0026src=api\u0026hl=en-US\u0026"],null,null,null,null,"t@130,r@207000000"],null,null,[["http://cbk0.googleapis.com/cbk?","http://cbk1.googleapis.com/cbk?"]],[["http://khm0.googleapis.com/kh?v=69\u0026hl=en-US\u0026","http://khm1.googleapis.com/kh?v=69\u0026hl=en-US\u0026"],null,null,null,null,"69"],[["http://mt0.googleapis.com/mapslt?hl=en-US\u0026","http://mt1.googleapis.com/mapslt?hl=en-US\u0026"]],[["http://mt0.googleapis.com/mapslt/ft?hl=en-US\u0026","http://mt1.googleapis.com/mapslt/ft?hl=en-US\u0026"]],[["http://mt0.googleapis.com/vt?hl=en-US\u0026","http://mt1.googleapis.com/vt?hl=en-US\u0026"]]],["en-US","US",null,0,null,null,"http://maps.gstatic.com/mapfiles/","http://csi.gstatic.com","https://maps.googleapis.com","http://maps.googleapis.com"],["http://maps.gstatic.com/intl/en_us/mapfiles/api-3/10/20","3.10.20"],[1158375105],1.0,null,null,null,null,0,"",["drawing"],null,0,"http://khm.googleapis.com/mz?v=124\u0026",null,"https://earthbuilder.google.com","https://earthbuilder.googleapis.com"], loadScriptTime);
-  };
-  var loadScriptTime = (new Date).getTime();
-  getScript("http://maps.gstatic.com/cat_js/intl/en_us/mapfiles/api-3/10/20/%7Bmain,drawing%7D.js");
-})();
-
 window.Phylotastic = {
 
 };
@@ -11669,7 +11645,6 @@ Phylotastic.Utils = {
 };
 
 Phylotastic.App = {
-
   updateMapToSource: function() {
     var curSource = Phylotastic.DataSources.currentSource;
     var selectionType = curSource.selectionType;
@@ -11688,6 +11663,8 @@ Phylotastic.App = {
       Phylotastic.Maps.setCountrySelection();
       break;
     }
+
+    $('#infopanel').html(curSource.infoPanel);
   },
 
   updateMapToSpecies: function() {},
@@ -11728,7 +11705,7 @@ Phylotastic.App = {
     });
 
     $.ajax({
-      url: this.serverBaseUrl + script,
+      url: this.serverBase() + script,
       data: params,
       failure: function(jqXhr, error, exception) {
 
@@ -11736,29 +11713,43 @@ Phylotastic.App = {
       success: function(data, status, jqXhr) {
         // Get some of the first common names to show the user.
         var species = $(data);
+        var allSpecies = [];
+        var allCommonNames = [];
 
         //console.log("Species", species.length);
         var msg;
 
         if (species.length > 0) {
           var exampleImages = [];
-          var allSpecies = [];
           for (var i = 0; i < species.length; i++) {
             var spec = species[i];
             allSpecies.push(spec.taxon_name);
 
-            if (i < 5) {
-              if (spec.thumbnail) {
-                exampleImages.push([
-                  '<div class="example-image-wrap">',
-                  '  <img class="example-image" src="' + spec.thumbnail + '"></img>',
-                  '</div>'].join(''));
-              } else if (spec.common_name) {
-                exampleImages.push([
-                  '<div class="example-common-name">',
-                  spec.common_name,
-                  '</div>'].join(''));
-              }
+            if (spec.common_name) {
+              allCommonNames.push(spec.common_name);
+            }
+          }
+
+          // Try to collect thumbnails first.
+          for (var i = 0; i < species.length; i++) {
+            var spec = species[i];
+            if (exampleImages.length < 5 && spec.thumbnail) {
+              exampleImages.push([
+                '<div class="example-image-wrap">',
+                '  <img class="example-image" src="' + spec.thumbnail + '" ',
+                'title="' + spec.common_name + '"></img>',
+                '</div>'].join(''));
+            }
+          }
+
+          // Now get common names.
+          for (var i = 0; i < species.length; i++) {
+            var spec = species[i];
+            if (exampleImages.length < 5 && spec.common_name) {
+              exampleImages.push([
+                '<div class="example-common-name">',
+                spec.common_name,
+                '</div>'].join(''));
             }
           }
 
@@ -11781,6 +11772,12 @@ Phylotastic.App = {
         $('#speciesWaiting .modal-header').html('Results');
         $('#speciesWaiting .modal-body').html(msg);
 
+        console.log("All species:");
+        console.log(allSpecies.join('\n'));
+
+        console.log("All common names:");
+        console.log(allCommonNames.join('\n'));
+
         $('#send-ptastic-query').on('click', function() {
           me.sendPhyloTasticQuery(allSpecies);
         });
@@ -11791,8 +11788,7 @@ Phylotastic.App = {
   sendPhyloTasticQuery: function(species) {
     var contactingNext = [
       '<p>Contacting Phylo<em>tastic</em> to find evolutionary relationships...</p>',
-      '<p>This may take a while, please be patient.</p>'
-      ].join('');
+      '<p>This may take a while, please be patient.</p>'].join('');
 
     $('#speciesWaiting .modal-header').html("<h3>Contacting PhyloTastic</h3>");
     $('#speciesWaiting .modal-body').html(contactingNext);
@@ -11803,7 +11799,7 @@ Phylotastic.App = {
     var script = "phylotastic.pl";
 
     $.ajax({
-      url: this.serverBaseUrl + script,
+      url: this.serverBase() + script,
       data: params,
       type: 'POST',
       success: function(data, status, jqXhr) {
@@ -11819,8 +11815,15 @@ Phylotastic.App = {
     });
   },
 
-  //serverBaseUrl: 'http://phylotastic-wg.nescent.org/~gjuggler/PhyloGeoTastic/cgi-bin/'
-  serverBaseUrl: 'http://localhost/~greg/pgt/cgi-bin/',
+  serverBase: function() {
+    var url = window.location.href;
+
+    if (url.match(/localhost/i)) {
+      return 'http://localhost/~greg/pgt/cgi-bin/';
+    } else {
+      return 'http://phylotastic-wg.nescent.org/~gjuggler/PhyloGeoTastic/cgi-bin/';
+    }
+  },
 };
 
 $().ready(function() {
@@ -11836,8 +11839,8 @@ $().ready(function() {
 
   var buttonEl = $('.go-button-wrap')[0];
   var goButton = $(['<button type="button" class="btn go-btn">',
-                   '<img class="btn-img" src="img/go.png"/>',
-                   '</button>'].join('')).appendTo(buttonEl);
+    '<img class="btn-img" src="img/go.png"/>',
+    '</button>'].join('')).appendTo(buttonEl);
   $(goButton).button();
   $(goButton).on('click', function() {
 
@@ -12043,24 +12046,36 @@ Phylotastic.DataSources = {
     var me = this;
     var sources = [{
       id: 'inaturalist',
-      label: 'Citizen Observations',
+      label: 'iNaturalist',
       resourceLabel: 'iNaturalist',
       selectionType: 'rectangle',
-      description: 'Find observations reported by citizen scientists from iNaturalist.org',
+      description: ['Find observations reported by citizen scientists from ',
+                    'iNaturalist'].join(''),
+      infoPanel: 'Select a rectangular area to search observations submitted to iNaturalist.org',
+      allowedSpeciesFilters: [
+        'birds', 'fishes', 'mammals', 'plants'
+      ]
     },
     {
       id: 'mapoflife',
       label: 'Map of Life',
       resourceLabel: 'Map of Life',
       selectionType: 'circle',
-      description: 'Find species that are threatened or endangered on the IUCN Red List',
+      description: 'Find species recorded in the Map of Life project',
+      infoPanel: '',
+      allowedSpeciesFilters: [
+        'birds', 'mammals', 'amphibians', 'fishes'
+      ]
     },
     {
       id: 'lampyr',
-      label: 'Geolocated Museum Records',
+      label: 'Museum Records',
       resourceLabel: 'GBIF',
       selectionType: 'point',
-      description: 'Find species collected from museum records around the world',
+      description: 'Find species locations collected from museum records around the world',
+      infoPanel: 'Place a marker to search for recorded museum records.',
+      allowedSpeciesFilters: [
+      ]
     }];
 
     sources.forEach(function(source) {
@@ -12068,6 +12083,17 @@ Phylotastic.DataSources = {
       source.button = button;
       button.on('click', function(event) {
         me.onDataSourceClick(event, source);
+      });
+      button.hover(function(event) {
+        console.log("Button hover");
+        $(button).popover({
+          html: true,
+          content: source.description,
+          title: source.resourceLabel  
+        });
+        $(button).popover('show');
+      }, function(event) {
+        $(button).popover('destroy')
       });
       $(el).append(button);
     });
@@ -12078,6 +12104,10 @@ Phylotastic.DataSources = {
     var button = source.button;
     $('.source-btn.active').button('toggle');
     button.button('toggle');
+
+    //console.log(source.infoPanel);
+    //$('#infopanel').html('<div>'+source.infoPanel+'</div>'
+      //);
 
     this.currentSource = source;
     Phylotastic.App.updateMapToSource();

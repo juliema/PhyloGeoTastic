@@ -15,7 +15,7 @@ h1 {
 }
 
 /* line 14, ../js/styles/phylotastic.scss */
-.example-image-wrap {
+.example-image-wrap, .example-common-name {
   position: relative;
   width: 80px;
   height: 80px;
@@ -24,6 +24,12 @@ h1 {
 }
 
 /* line 22, ../js/styles/phylotastic.scss */
+.example-common-name {
+  border: 1px solid gray;
+  background-color: #DDDDDD;
+}
+
+/* line 27, ../js/styles/phylotastic.scss */
 .example-image {
   border-radius: 8px;
   position: absolute;
@@ -36,31 +42,30 @@ h1 {
   max-width: 90%;
 }
 
-/* line 34, ../js/styles/phylotastic.scss */
+/* line 39, ../js/styles/phylotastic.scss */
 .panel {
   margin-top: 10px;
   margin-bottom: 10px;
   padding: 10px;
-  border-radius: 10px;
   background-color: white;
 }
 
-/* line 42, ../js/styles/phylotastic.scss */
+/* line 46, ../js/styles/phylotastic.scss */
 .map-wrap {
   height: 350px;
 }
 
-/* line 46, ../js/styles/phylotastic.scss */
+/* line 50, ../js/styles/phylotastic.scss */
 .sources-wrap {
   height: 350px;
 }
 
-/* line 50, ../js/styles/phylotastic.scss */
+/* line 54, ../js/styles/phylotastic.scss */
 .species-wrap {
   height: 350px;
 }
 
-/* line 54, ../js/styles/phylotastic.scss */
+/* line 58, ../js/styles/phylotastic.scss */
 .source-btn {
   border-radius: 20px;
   width: 75%;
@@ -69,7 +74,7 @@ h1 {
   margin: 20px;
 }
 
-/* line 62, ../js/styles/phylotastic.scss */
+/* line 66, ../js/styles/phylotastic.scss */
 .species-btn {
   display: block !important;
   padding: 2px !important;
@@ -82,21 +87,21 @@ h1 {
   margin-bottom: 10px;
 }
 
-/* line 74, ../js/styles/phylotastic.scss */
+/* line 78, ../js/styles/phylotastic.scss */
 .species-btn img {
   margin: 0px;
   max-height: 90%;
   max-width: 90%;
 }
 
-/* line 80, ../js/styles/phylotastic.scss */
+/* line 84, ../js/styles/phylotastic.scss */
 .go-btn img {
   margin: 0px;
   max-height: 90%;
   max-width: 90%;
 }
 
-/* line 86, ../js/styles/phylotastic.scss */
+/* line 90, ../js/styles/phylotastic.scss */
 .go-btn {
   display: block !important;
   width: 80px;
@@ -105,7 +110,7 @@ h1 {
   padding: 0px !important;
 }
 
-/* line 94, ../js/styles/phylotastic.scss */
+/* line 98, ../js/styles/phylotastic.scss */
 #map {
   width: 100%;
   height: 90%;
