@@ -7,6 +7,9 @@
   <link rel="stylesheet" type="text/css" href="phylotastic.css"/>
   <link rel="stylesheet" type="text/css" href="bootstrap.css"/>
 
+  <script type="text/javascript"
+      src="https://maps.googleapis.com/maps/api/js?sensor=false&libraries=drawing">
+  </script>
 	<script type="text/javascript" src="d3.js"></script>
 	<script type="text/javascript" src="jquery-1.7.1.min.js"></script>
 	<script type="text/javascript" src="jquery-ui-1.8.17.custom.min.js"></script>
@@ -32,8 +35,10 @@
 
         <div class="species-wrap panel span2">
         <div>3. Filter by species:</div>
-        </div>
-        
+        </div>        
+      </div>
+      <div class="row-fluid">
+        <div id="infopanel" class="panel offset2 span8 info-panel"></div>
       </div>
       
       <div class="row">

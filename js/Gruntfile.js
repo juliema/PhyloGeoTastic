@@ -4,12 +4,11 @@ module.exports = function(grunt) {
 
   var libs = [
     'lib/jquery.js',
-    'lib/bootstrap.js',
-    'lib/google-maps.js'];
+    'lib/bootstrap.js'];
 
   var libsNoJQ = [
-    'lib/bootstrap.js',
-    'lib/google-maps.js'];
+    'lib/bootstrap.js'
+  ];
 
   var core = [].concat(
     'src/Phylotastic.js',

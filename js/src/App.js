@@ -1,5 +1,4 @@
 Phylotastic.App = {
-
   updateMapToSource: function() {
     var curSource = Phylotastic.DataSources.currentSource;
     var selectionType = curSource.selectionType;
@@ -18,6 +17,8 @@ Phylotastic.App = {
       Phylotastic.Maps.setCountrySelection();
       break;
     }
+
+    $('#infopanel').html(curSource.infoPanel);
   },
 
   updateMapToSpecies: function() {},
@@ -58,7 +59,7 @@ Phylotastic.App = {
     });
 
     $.ajax({
-      url: this.serverBaseUrl + script,
+      url: this.serverBase() + script,
       data: params,
       failure: function(jqXhr, error, exception) {
 
@@ -66,29 +67,43 @@ Phylotastic.App = {
       success: function(data, status, jqXhr) {
         // Get some of the first common names to show the user.
         var species = $(data);
+        var allSpecies = [];
+        var allCommonNames = [];
 
         //console.log("Species", species.length);
         var msg;
 
         if (species.length > 0) {
           var exampleImages = [];
-          var allSpecies = [];
           for (var i = 0; i < species.length; i++) {
             var spec = species[i];
             allSpecies.push(spec.taxon_name);
 
-            if (i < 5) {
-              if (spec.thumbnail) {
-                exampleImages.push([
-                  '<div class="example-image-wrap">',
-                  '  <img class="example-image" src="' + spec.thumbnail + '"></img>',
-                  '</div>'].join(''));
-              } else if (spec.common_name) {
-                exampleImages.push([
-                  '<div class="example-common-name">',
-                  spec.common_name,
-                  '</div>'].join(''));
-              }
+            if (spec.common_name) {
+              allCommonNames.push(spec.common_name);
+            }
+          }
+
+          // Try to collect thumbnails first.
+          for (var i = 0; i < species.length; i++) {
+            var spec = species[i];
+            if (exampleImages.length < 5 && spec.thumbnail) {
+              exampleImages.push([
+                '<div class="example-image-wrap">',
+                '  <img class="example-image" src="' + spec.thumbnail + '" ',
+                'title="' + spec.common_name + '"></img>',
+                '</div>'].join(''));
+            }
+          }
+
+          // Now get common names.
+          for (var i = 0; i < species.length; i++) {
+            var spec = species[i];
+            if (exampleImages.length < 5 && spec.common_name) {
+              exampleImages.push([
+                '<div class="example-common-name">',
+                spec.common_name,
+                '</div>'].join(''));
             }
           }
 
@@ -111,6 +126,12 @@ Phylotastic.App = {
         $('#speciesWaiting .modal-header').html('Results');
         $('#speciesWaiting .modal-body').html(msg);
 
+        console.log("All species:");
+        console.log(allSpecies.join('\n'));
+
+        console.log("All common names:");
+        console.log(allCommonNames.join('\n'));
+
         $('#send-ptastic-query').on('click', function() {
           me.sendPhyloTasticQuery(allSpecies);
         });
@@ -121,8 +142,7 @@ Phylotastic.App = {
   sendPhyloTasticQuery: function(species) {
     var contactingNext = [
       '<p>Contacting Phylo<em>tastic</em> to find evolutionary relationships...</p>',
-      '<p>This may take a while, please be patient.</p>'
-      ].join('');
+      '<p>This may take a while, please be patient.</p>'].join('');
 
     $('#speciesWaiting .modal-header').html("<h3>Contacting PhyloTastic</h3>");
     $('#speciesWaiting .modal-body').html(contactingNext);
@@ -133,7 +153,7 @@ Phylotastic.App = {
     var script = "phylotastic.pl";
 
     $.ajax({
-      url: this.serverBaseUrl + script,
+      url: this.serverBase() + script,
       data: params,
       type: 'POST',
       success: function(data, status, jqXhr) {
@@ -149,8 +169,15 @@ Phylotastic.App = {
     });
   },
 
-  //serverBaseUrl: 'http://phylotastic-wg.nescent.org/~gjuggler/PhyloGeoTastic/cgi-bin/'
-  serverBaseUrl: 'http://localhost/~greg/pgt/cgi-bin/',
+  serverBase: function() {
+    var url = window.location.href;
+
+    if (url.match(/localhost/i)) {
+      return 'http://localhost/~greg/pgt/cgi-bin/';
+    } else {
+      return 'http://phylotastic-wg.nescent.org/~gjuggler/PhyloGeoTastic/cgi-bin/';
+    }
+  },
 };
 
 $().ready(function() {
@@ -166,8 +193,8 @@ $().ready(function() {
 
   var buttonEl = $('.go-button-wrap')[0];
   var goButton = $(['<button type="button" class="btn go-btn">',
-                   '<img class="btn-img" src="img/go.png"/>',
-                   '</button>'].join('')).appendTo(buttonEl);
+    '<img class="btn-img" src="img/go.png"/>',
+    '</button>'].join('')).appendTo(buttonEl);
   $(goButton).button();
   $(goButton).on('click', function() {
 

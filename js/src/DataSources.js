@@ -7,24 +7,36 @@ Phylotastic.DataSources = {
     var me = this;
     var sources = [{
       id: 'inaturalist',
-      label: 'Citizen Observations',
+      label: 'iNaturalist',
       resourceLabel: 'iNaturalist',
       selectionType: 'rectangle',
-      description: 'Find observations reported by citizen scientists from iNaturalist.org',
+      description: ['Find observations reported by citizen scientists from ',
+                    'iNaturalist'].join(''),
+      infoPanel: 'Select a rectangular area to search observations submitted to iNaturalist.org',
+      allowedSpeciesFilters: [
+        'birds', 'fishes', 'mammals', 'plants'
+      ]
     },
     {
       id: 'mapoflife',
       label: 'Map of Life',
       resourceLabel: 'Map of Life',
       selectionType: 'circle',
-      description: 'Find species that are threatened or endangered on the IUCN Red List',
+      description: 'Find species recorded in the Map of Life project',
+      infoPanel: '',
+      allowedSpeciesFilters: [
+        'birds', 'mammals', 'amphibians', 'fishes'
+      ]
     },
     {
       id: 'lampyr',
-      label: 'Geolocated Museum Records',
+      label: 'Museum Records',
       resourceLabel: 'GBIF',
       selectionType: 'point',
-      description: 'Find species collected from museum records around the world',
+      description: 'Find species locations collected from museum records around the world',
+      infoPanel: 'Place a marker to search for recorded museum records.',
+      allowedSpeciesFilters: [
+      ]
     }];
 
     sources.forEach(function(source) {
@@ -32,6 +44,17 @@ Phylotastic.DataSources = {
       source.button = button;
       button.on('click', function(event) {
         me.onDataSourceClick(event, source);
+      });
+      button.hover(function(event) {
+        console.log("Button hover");
+        $(button).popover({
+          html: true,
+          content: source.description,
+          title: source.resourceLabel  
+        });
+        $(button).popover('show');
+      }, function(event) {
+        $(button).popover('destroy')
       });
       $(el).append(button);
     });
@@ -42,6 +65,10 @@ Phylotastic.DataSources = {
     var button = source.button;
     $('.source-btn.active').button('toggle');
     button.button('toggle');
+
+    //console.log(source.infoPanel);
+    //$('#infopanel').html('<div>'+source.infoPanel+'</div>'
+      //);
 
     this.currentSource = source;
     Phylotastic.App.updateMapToSource();

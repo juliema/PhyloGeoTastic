@@ -11,12 +11,17 @@ h1 {
   margin-bottom: 10px;  
 }
 
-.example-image-wrap {
+.example-image-wrap, .example-common-name {
   position:relative;                    
   width: 80px;
   height: 80px;
   display: inline-block;
   margin: 5px;
+}
+
+.example-common-name {
+  border: 1px solid gray;
+  background-color: #DDDDDD;
 }
 
 .example-image {
