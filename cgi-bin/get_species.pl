@@ -82,7 +82,6 @@ sub search_inaturalist {
     swlng         => $longitude,
     nelat         => $ne_latitude,
     nelng         => $ne_longitude,
-    quality_grade => 'research',
     per_page      => 200
   );
 
@@ -93,6 +92,7 @@ sub search_inaturalist {
   my @all_results;
   my $page = 1;
   my $n    = 999;
+  my $max_results = 400;
 
   do {
     #print "FETCHING PAGE $page\n";
@@ -107,7 +107,7 @@ sub search_inaturalist {
 
     $n = scalar(@$arrayref);
     $page++;
-  } while ( $n > 0 && scalar(@all_results) < 400 );
+  } while ( $n > 0 && scalar(@all_results) < $max_results );
 
   my @species;
   foreach my $row (@all_results) {
@@ -158,9 +158,14 @@ sub search_map_of_life {
   my $arrayref = $hashref->{rows};
   my @species;
   foreach my $result (@$arrayref) {
+      my $common_name = $result->{english};
+      if ($common_name) {
+          my @toks = split(', ', $common_name);
+          $common_name = $toks[0];
+      }
     push @species, {
       taxon_name  => $result->{scientificname},
-      common_name => $result->{english},
+      common_name => $common_name,
       thumbnail   => $result->{thumbsrc}
       };
   }
