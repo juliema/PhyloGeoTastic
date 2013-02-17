@@ -20,7 +20,7 @@ use Bio::Phylo::EvolutionaryModels qw (sample);
 use constant IS_CGI => exists $ENV{'REQUEST_URI'};
 
 my $http    = LWP::UserAgent->new();
-my $species = "Junco hyemalis;Carpodacus cassinii;Lanius excubitor";
+my $species = "Alectoris chukar;Centrocercus minimus;Phasianus colchicus;Anas acuta;Anas americana;Anas clypeata;Anas crecca;Anas cyanoptera;Anas discors;Anas platyrhynchos";
 my $group = '';
 my $treestore = 'opentree';
 
@@ -88,6 +88,7 @@ sub fetch_tree {
   if ($treestore ne '') {
       $content_obj->{treestore} = $treestore;
   }
+
   #print "URL $url\n";
   my $response = $http->post( $url, $content_obj );
   fatal( $response->status_line, IS_CGI, 500 ) unless ( $response->is_success );
@@ -95,6 +96,15 @@ sub fetch_tree {
   my $newick = $response->content;
   #print "GOT SOMETHING BACK: $newick\n";
   #$newick =~ s/\\\"\\n\\\"//g;
+
+  # Remove crap returned by the fullqueryopentree script
+  $newick =~ s/&quot;//g;
+
+  # Remove crap returned by the auto/tree script
+  $newick =~ s/"(.*)\\n"/$1/g;
+
+  # Add a semicolon (which both scripts forget to include) to make it a real Newick string.
+  $newick .= ';';
 
   return $newick;
 }
