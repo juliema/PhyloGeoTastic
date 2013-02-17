@@ -7,6 +7,11 @@ use warnings;
 # imports
 #----------------------------------------------------------------------
 
+use constant IS_CGI => exists $ENV{'REQUEST_URI'};
+if (IS_CGI) {
+  use lib '/home/gjuggler/perl5/lib/perl5';
+}
+
 use CGI;
 use LWP::UserAgent;
 use Getopt::Long;
@@ -20,9 +25,10 @@ use Bio::Phylo::EvolutionaryModels qw (sample);
 use constant IS_CGI => exists $ENV{'REQUEST_URI'};
 
 my $http    = LWP::UserAgent->new();
-my $species = "Alectoris chukar;Centrocercus minimus;Phasianus colchicus;Anas acuta;Anas americana;Anas clypeata;Anas crecca;Anas cyanoptera;Anas discors;Anas platyrhynchos";
+my $species = "Junco hyemalis;Carpodacus cassinii;Lanius excubitor;Homo sapiens";
 my $group = '';
-my $treestore = 'opentree';
+my $treestore = '';
+my $skip_tnrs = 1;
 
 my $cgi = CGI->new();
 
@@ -37,8 +43,8 @@ if (IS_CGI) {
   die "Fail!" unless $getopt_success;
 }
 
-my $newick_response = fetch_tree($species, $group);
-#my $newick_response = make_fake_tree($species);
+#my $newick_response = fetch_tree($species, $group);
+my $newick_response = make_fake_tree($species);
 print $newick_response;
 
 sub make_fake_tree {
@@ -89,11 +95,18 @@ sub fetch_tree {
       $content_obj->{treestore} = $treestore;
   }
 
+<<<<<<< HEAD
+=======
+  if ($skip_tnrs) {
+      $content_obj->{skip_tnrs} = 1;
+  }
+
+>>>>>>> 220004aeeeca9375b6a59fbceb843645ae89238f
   #print "URL $url\n";
   my $response = $http->post( $url, $content_obj );
   fatal( $response->status_line, IS_CGI, 500 ) unless ( $response->is_success );
 
-  my $newick = $response->content;
+  my $newick = $response->decoded_content();
   #print "GOT SOMETHING BACK: $newick\n";
   #$newick =~ s/\\\"\\n\\\"//g;
 
