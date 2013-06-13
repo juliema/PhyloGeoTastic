@@ -114,7 +114,7 @@ sub search_inaturalist {
     $page++;
   } while ( $n > 0 && scalar(@all_results) < $max_results );
 
-  my @species;
+  my $species_map = {};
   foreach my $row (@all_results) {
 
     #print Dumper($row);
@@ -127,9 +127,12 @@ sub search_inaturalist {
       if ( $row->{photos} && $row->{photos}->[0] ) {
         $data->{thumbnail} = $row->{photos}->[0]->{thumb_url};
       }
-      push @species, $data;
+      $species_map->{$data->{taxon_name}} = $data;
     }
   }
+
+  # Expand species into array.
+  my @species = map {$species_map->{$_}} keys %{$species_map};
   print encode_json( \@species ) . "\n";
 }
 
