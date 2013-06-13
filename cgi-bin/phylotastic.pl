@@ -43,8 +43,8 @@ if (IS_CGI) {
   die "Fail!" unless $getopt_success;
 }
 
-#my $newick_response = fetch_tree($species, $group);
-my $newick_response = make_fake_tree($species);
+my $newick_response = fetch_tree($species, $group);
+#my $newick_response = make_fake_tree($species);
 print $newick_response;
 
 sub make_fake_tree {
@@ -95,13 +95,10 @@ sub fetch_tree {
       $content_obj->{treestore} = $treestore;
   }
 
-<<<<<<< HEAD
-=======
   if ($skip_tnrs) {
       $content_obj->{skip_tnrs} = 1;
   }
 
->>>>>>> 220004aeeeca9375b6a59fbceb843645ae89238f
   #print "URL $url\n";
   my $response = $http->post( $url, $content_obj );
   fatal( $response->status_line, IS_CGI, 500 ) unless ( $response->is_success );
