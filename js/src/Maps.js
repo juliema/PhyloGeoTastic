@@ -78,6 +78,29 @@ Phylotastic.Maps = {
     };
   },
 
+  setCircle: function(params) {
+    this.setCircularSelection();
+    var circleOptions = {
+      center: new google.maps.LatLng(params.latitude, params.longitude),
+      radius: params.radius,
+      map: map,
+      editable: true
+    };
+    var circle = new google.maps.Circle(circleOptions);
+  },
+
+  setRect: function(params) {
+    this.setRectangularSelection();
+    var rectOptions = {
+      map: this.map,
+      bounds: new google.maps.LatLngBounds(
+        new google.maps.LatLng(params.latitude, params.longitude),
+        new google.maps.LatLng(params.ne_latitude, params.ne_longitude)),
+      editable: true
+    };
+    var rec = new google.maps.Rectangle(rectOptions);
+  },
+
   onShapeEvent: function(event) {
     var me = this;
     var drawingManager = me.drawingManager;
@@ -182,6 +205,6 @@ Phylotastic.Maps = {
       me.currentOverlay.setMap(null);
       delete me.currentOverlay;
     }
-  }
+  },
 
 };
