@@ -3,6 +3,28 @@ Phylotastic.DataSources = {
   currentSource: undefined,
   currentSpecies: undefined,
 
+  createExamplesUI: function(el) {
+    var examples = [{
+      db: 'inaturalist',
+      species: 'birds',
+      latitude: 0,
+      longitude: 0,
+      ne_latitude: 0,
+      ne_longitude: 0,
+      details_url: 'http://www.google.com/'
+    },
+    {
+      db: 'lampyr',
+      species: 'mammals',
+      latitude: 0,
+      longitude: 0,
+      ne_latitude: 0,
+      ne_longitude: 0,
+      details_url: 'http://www.google.com/'
+    }];
+
+  },
+
   createDataSourceUI: function(el) {
     var me = this;
     var sources = [{
@@ -21,7 +43,7 @@ Phylotastic.DataSources = {
       allowedSpeciesFilters: [
         'birds', 'fishes', 'mammals', 'plants']
     },
-/*    {
+    /*    {
       id: 'mapoflife',
       label: 'Map of Life',
       resourceLabel: 'Map of Life',

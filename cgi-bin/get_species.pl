@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 
 use warnings;
 use strict;
@@ -6,7 +6,7 @@ use CGI;
 
 use constant IS_CGI => exists $ENV{'REQUEST_URI'};
 if (IS_CGI) {
-    use lib '/home/gjuggler/perl5/lib/perl5';
+  use lib '/home/gjuggler/perl5/lib/perl5';
 }
 
 use CGI::Carp qw(warningsToBrowser fatalsToBrowser);

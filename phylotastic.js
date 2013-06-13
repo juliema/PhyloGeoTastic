@@ -11782,6 +11782,7 @@ Phylotastic.App = {
           msg = [
             'Found ' + allSpecies.length + ' species!',
             exampleText,
+//            '<div>To view a list of all the species, <a href="#" id="send-ptastic-query">click here</a>.</div>',
             '<div>To explore their evolutionary relationships, <a href="#" id="send-ptastic-query">click here</a>.</div>'].join('');
         } else {
           msg = '<p>No results found. Try a broader search.</p>';
@@ -11846,9 +11847,8 @@ Phylotastic.App = {
 
   serverBase: function() {
     var url = window.location.href;
-
-    if (url.match(/localhost/i)) {
-      return 'http://localhost/~greg/pgt/cgi-bin/';
+    if (url.match(/~greg/i)) {
+      return 'http://'+window.location.host+'/~greg/pgt/cgi-bin/';
     } else {
       return 'http://phylotastic-wg.nescent.org/~gjuggler/PhyloGeoTastic/cgi-bin/';
     }
@@ -11870,14 +11870,14 @@ $().ready(function() {
   Phylotastic.DataSources.onDataSourceClick(null, Phylotastic.DataSources.sources[0]);
   Phylotastic.DataSources.onSpeciesClick(null, Phylotastic.DataSources.species[0]);
 
-
   var buttonEl = $('.go-button-wrap')[0];
   var goButton = $(['<button type="button" class="btn go-btn">',
     '<img class="btn-img" src="img/go.png"/>',
     '</button>'].join('')).appendTo(buttonEl);
   $(goButton).button();
-  $(goButton).on('click', function() {
 
+  // Main click handler.
+  $(goButton).on('click', function() {
     Phylotastic.App.sendApiQuery();
   });
 
@@ -11961,6 +11961,29 @@ Phylotastic.Maps = {
       ne_latitude: ne.lat(),
       ne_longitude: ne.lng()
     };
+  },
+
+  setCircle: function(params) {
+    this.setCircularSelection();
+    var circleOptions = {
+      center: new google.maps.LatLng(params.latitude, params.longitude),
+      radius: params.radius,
+      map: map,
+      editable: true
+    };
+    var circle = new google.maps.Circle(circleOptions);
+  },
+
+  setRect: function(params) {
+    this.setRectangularSelection();
+    var rectOptions = {
+      map: this.map,
+      bounds: new google.maps.LatLngBounds(
+        new google.maps.LatLng(params.latitude, params.longitude),
+        new google.maps.LatLng(params.ne_latitude, params.ne_longitude)),
+      editable: true
+    };
+    var rec = new google.maps.Rectangle(rectOptions);
   },
 
   onShapeEvent: function(event) {
@@ -12067,7 +12090,7 @@ Phylotastic.Maps = {
       me.currentOverlay.setMap(null);
       delete me.currentOverlay;
     }
-  }
+  },
 
 };
 
@@ -12075,6 +12098,28 @@ Phylotastic.DataSources = {
 
   currentSource: undefined,
   currentSpecies: undefined,
+
+  createExamplesUI: function(el) {
+    var examples = [{
+      db: 'inaturalist',
+      species: 'birds',
+      latitude: 0,
+      longitude: 0,
+      ne_latitude: 0,
+      ne_longitude: 0,
+      details_url: 'http://www.google.com/'
+    },
+    {
+      db: 'lampyr',
+      species: 'mammals',
+      latitude: 0,
+      longitude: 0,
+      ne_latitude: 0,
+      ne_longitude: 0,
+      details_url: 'http://www.google.com/'
+    }];
+
+  },
 
   createDataSourceUI: function(el) {
     var me = this;
@@ -12094,7 +12139,7 @@ Phylotastic.DataSources = {
       allowedSpeciesFilters: [
         'birds', 'fishes', 'mammals', 'plants']
     },
-/*    {
+    /*    {
       id: 'mapoflife',
       label: 'Map of Life',
       resourceLabel: 'Map of Life',
