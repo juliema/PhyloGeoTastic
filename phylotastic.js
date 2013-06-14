@@ -12199,7 +12199,7 @@ Phylotastic.DataSources = {
   createExamplesUI: function(el) {
     var me = this;
 
-    var learnMore = ' <a target="_blank" href="https://docs.google.com/document/d/1vQ1sNOkwUPtJsiN7TSV0EIxPQ0PhinPM_flvs_RNHtU/edit">Click here to learn more</a>';
+    var learnMore = ' <a target="_blank" href="https://docs.google.com/document/d/1vQ1sNOkwUPtJsiN7TSV0EIxPQ0PhinPM_flvs_RNHtU/pub">Click here to learn more</a>';
 
     var examples = [{
       db: 'inaturalist',
