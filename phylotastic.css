@@ -127,3 +127,18 @@ h1 {
   width: 100%;
   height: 90%;
 }
+
+/* line 121, js/styles/phylotastic.scss */
+.pgt-link {
+  cursor: pointer;
+}
+
+/* line 125, js/styles/phylotastic.scss */
+.pgt-demo-link {
+  cursor: pointer;
+}
+
+/* line 129, js/styles/phylotastic.scss */
+.examples-wrap {
+  text-align: center;
+}
