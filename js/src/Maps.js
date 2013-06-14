@@ -56,6 +56,16 @@ Phylotastic.Maps = {
     this.geocoder = geocoder;
   },
 
+  getMarkerParams: function(marker) {
+    var me = this;
+    var lat = marker.getPosition().lat();
+    var lng = marker.getPosition().lng();
+    return {
+      latitude: lat,
+      longitude: lng
+    };
+  },
+
   getCircleParams: function(circle) {
     var radius = circle.getRadius();
     var center = circle.getCenter();
@@ -78,18 +88,65 @@ Phylotastic.Maps = {
     };
   },
 
+  setCurrentParams: function(params) {
+    this.currentParams = params;
+    console.log("Cur params: ", params);
+  },
+
+  setPoint: function(params) {
+    var me = this;
+    this.setPointSelection();
+    var pointOptions = {
+      position: new google.maps.LatLng(params.latitude, params.longitude),
+      map: this.map,
+      editable: true
+    };
+    var marker = new google.maps.Marker(pointOptions);
+    this.currentOverlay = marker;
+
+    me.setCurrentParams(me.getMarkerParams(marker));
+
+    this.map.panTo(marker.getPosition());
+    this.map.setZoom(params.zoomLevel);
+    this.drawingManager.setOptions({
+      drawingMode: null
+    });
+  },
+
   setCircle: function(params) {
+    var me = this;
+
     this.setCircularSelection();
     var circleOptions = {
       center: new google.maps.LatLng(params.latitude, params.longitude),
       radius: params.radius,
-      map: map,
+      map: this.map,
       editable: true
     };
     var circle = new google.maps.Circle(circleOptions);
+    google.maps.event.addListener(circle, 'radius_changed', function() {
+      me.setCurrentParams(me.getCircleParams(circle));
+    });
+    google.maps.event.addListener(circle, 'center_changed', function() {
+      me.setCurrentParams(me.getCircleParams(circle));
+    });
+
+    me.setCurrentParams(me.getCircleParams(circle));
+
+    this.currentOverlay = circle;
+    if (params.zoomLevel) {
+      this.map.panTo(circle.getBounds());
+      this.map.setZoom(params.zoomLevel);
+    } else {
+      this.map.panToBounds(circle.getBounds());
+    }
+    this.drawingManager.setOptions({
+      drawingMode: null
+    });
   },
 
   setRect: function(params) {
+    var me = this;
     this.setRectangularSelection();
     var rectOptions = {
       map: this.map,
@@ -98,7 +155,23 @@ Phylotastic.Maps = {
         new google.maps.LatLng(params.ne_latitude, params.ne_longitude)),
       editable: true
     };
-    var rec = new google.maps.Rectangle(rectOptions);
+    var rect = new google.maps.Rectangle(rectOptions);
+    google.maps.event.addListener(rect, 'bounds_changed', function() {
+      me.setCurrentParams(me.getRectParams(rect));
+    });
+
+    me.setCurrentParams(me.getRectParams(rect));
+
+    this.currentOverlay = rect;
+    if (params.zoomLevel) {
+      this.map.fitBounds(rect.getBounds());
+      this.map.setZoom(params.zoomLevel);
+    } else {
+      this.map.fitBounds(rect.getBounds());
+    }
+    this.drawingManager.setOptions({
+      drawingMode: null
+    });
   },
 
   onShapeEvent: function(event) {
@@ -111,18 +184,18 @@ Phylotastic.Maps = {
     }
     if (event.type === google.maps.drawing.OverlayType.CIRCLE) {
       var circle = event.overlay;
-      me.currentParams = me.getCircleParams(circle);
+      me.setCurrentParams(me.getCircleParams(circle));
       google.maps.event.addListener(circle, 'radius_changed', function() {
-        me.currentParams = me.getCircleParams(circle);
+        me.setCurrentParams(me.getCircleParams(circle));
       });
       google.maps.event.addListener(circle, 'center_changed', function() {
-        me.currentParams = me.getCircleParams(circle);
+        me.setCurrentParams(me.getCircleParams(circle));
       });
     } else if (event.type === google.maps.drawing.OverlayType.RECTANGLE) {
       var rect = event.overlay;
-      me.currentParams = me.getRectParams(rect);
+      me.setCurrentParams(me.getRectParams(rect));
       google.maps.event.addListener(rect, 'bounds_changed', function() {
-        me.currentParams = me.getRectParams(rect);
+        me.setCurrentParams(me.getRectParams(rect));
       });
     } else {
       var lat = event.overlay.position.lat();
@@ -137,12 +210,6 @@ Phylotastic.Maps = {
       drawingMode: null
     });
     me.currentOverlay = event.overlay;
-  },
-
-  getParams: function() {
-    var currentOverlay = this.currentOverlay;
-
-    console.log(currentOverlay);
   },
 
   centerOnCountry: function(country) {

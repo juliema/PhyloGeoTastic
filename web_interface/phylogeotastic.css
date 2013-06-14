@@ -249,14 +249,6 @@ line {
   color: #1181B8;
 }
 
-a:link, a:visited {
-  color: #000;
-  text-decoration: none;
-}
-
-a:hover {
-  color: #666;
-}
 
 .hint {
   position: absolute;
@@ -286,3 +278,8 @@ html[xmlns] .clearfix {
 
 * html .clearfix {
     heig
+
+
+.examples-wrap {
+  text-align: center;
+}

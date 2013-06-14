@@ -25,10 +25,10 @@ Phylotastic.App = {
     var species = Phylotastic.DataSources.species;
     var allowedSpecies = curSource.allowedSpeciesFilters;
 
-    for (var i=0; i < species.length; i++) {
+    for (var i = 0; i < species.length; i++) {
       var x = species[i];
       x.button.addClass('disabled');
-      for (var j=0; j < allowedSpecies.length; j++) {
+      for (var j = 0; j < allowedSpecies.length; j++) {
         var y = allowedSpecies[j];
         if (x.id === y) {
           x.button.removeClass('disabled');
@@ -39,7 +39,9 @@ Phylotastic.App = {
     Phylotastic.Maps.clearOverlays();
   },
 
-  updateMapToSpecies: function() {},
+  updateMapToSpecies: function() {
+
+  },
 
   getWaitingHtml: function() {
     var source = Phylotastic.DataSources.currentSource;
@@ -65,6 +67,7 @@ Phylotastic.App = {
 
     // Get the map parameters to send to the server-side script.
     var mapParams = Phylotastic.Maps.currentParams || {};
+    console.log("PARAMS", mapParams);
     var params = {
       service: source.id,
       species_group: species.id
@@ -90,6 +93,16 @@ Phylotastic.App = {
 
         //console.log("Species", species.length);
         var msg;
+
+        // Create a map of all latin names to thumbnail URLs.
+        me.speciesThumbMap = {};
+
+        for (var i = 0; i < species.length; i++) {
+          var x = species[i];
+          if (x.thumbnail) {
+            me.speciesThumbMap[x.taxon_name] = x.thumbnail;
+          }
+        }
 
         if (species.length > 0) {
           var exampleImages = [];
@@ -136,8 +149,8 @@ Phylotastic.App = {
           msg = [
             'Found ' + allSpecies.length + ' species!',
             exampleText,
-//            '<div>To view a list of all the species, <a href="#" id="send-ptastic-query">click here</a>.</div>',
-            '<div>To explore their evolutionary relationships, <a href="#" id="send-ptastic-query">click here</a>.</div>'].join('');
+            //            '<div>To view a list of all the species, <a href="#" id="send-ptastic-query">click here</a>.</div>',
+            '<div>To explore their evolutionary relationships, <a class="pgt-link" id="send-ptastic-query">click here</a>.</div>'].join('');
         } else {
           msg = '<p>No results found. Try a broader search.</p>';
         }
@@ -147,10 +160,8 @@ Phylotastic.App = {
 
         //console.log("All species:");
         //console.log(allSpecies.join('\n'));
-
         //console.log("All common names:");
         //console.log(allCommonNames.join('\n'));
-
         $('#send-ptastic-query').on('click', function() {
           me.sendPhyloTasticQuery(allSpecies);
         });
@@ -159,6 +170,8 @@ Phylotastic.App = {
   },
 
   sendPhyloTasticQuery: function(species) {
+    var me = this;
+
     var contactingNext = [
       '<p>Contacting Phylo<em>tastic</em> to find evolutionary relationships...</p>',
       '<p>This may take a while, please be patient.</p>'].join('');
@@ -182,19 +195,33 @@ Phylotastic.App = {
         tree = tree.replace(/&quot;/g, '');
         tree = tree.replace(/"/g, '');
 
-        var url = ['./treeView.html?tree=',
-                   tree+'',
-                   ''].join('');
+        var thumbs = me.speciesThumbMap;
 
-        var gotText = [
-          '<p>Found the evolutionary tree connecting your species!',
-          '</p><p>',
-          '<a target="_blank" href="'+url+'">Click here</a>',
-          ' to visualize the tree in a new window.',
-          '</p>'].join('');
+        for (var species in thumbs) {
+          var url = thumbs[species];
+          species = species.replace(' ', '_');
+          var regexp = new RegExp(species+'(:[\\d\\.]+)?');
+          url = url.replace('&', '&colon;');
+          console.log(regexp);
+          console.log(species, url);
+          tree = tree.replace(regexp, '$&[&&NHX:img='+url+']');
+        }
 
-        $('#speciesWaiting .modal-body').html(gotText);
+        var el = $([
+          '<div>',
+          '<p>Found the evolutionary tree connecting your species!</p>',
+          '<a class="pgt-link">Click here</a>',
+          ' to open the Newick text.',
+          '</div>'].join(''));
+        var link = el.find('a');
+        link.on('click', function() {
+          // Open the current call script in a new window
+          var openWindow = window.open(undefined, 'pgtPopup', 'width = 500, height = 500');
+          $(openWindow.document.body).html(tree);
 
+        });
+
+        $('#speciesWaiting .modal-body').append(el);
       }
     });
   },
@@ -202,7 +229,7 @@ Phylotastic.App = {
   serverBase: function() {
     var url = window.location.href;
     if (url.match(/~greg/i)) {
-      return 'http://'+window.location.host+'/~greg/pgt/cgi-bin/';
+      return 'http://' + window.location.host + '/~greg/pgt/cgi-bin/';
     } else {
       return 'http://phylotastic-wg.nescent.org/~gjuggler/PhyloGeoTastic/cgi-bin/';
     }
@@ -223,6 +250,9 @@ $().ready(function() {
   // Click "iNaturalist" and "mammals"
   Phylotastic.DataSources.onDataSourceClick(null, Phylotastic.DataSources.sources[0]);
   Phylotastic.DataSources.onSpeciesClick(null, Phylotastic.DataSources.species[0]);
+
+  var examplesEl = $('.examples-wrap')[0];
+  Phylotastic.DataSources.createExamplesUI(examplesEl);
 
   var buttonEl = $('.go-button-wrap')[0];
   var goButton = $(['<button type="button" class="btn go-btn">',
