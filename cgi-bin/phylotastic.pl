@@ -43,8 +43,8 @@ if (IS_CGI) {
   die "Fail!" unless $getopt_success;
 }
 
-#my $newick_response = fetch_tree($species, $group);
-my $newick_response = make_fake_tree($species);
+my $newick_response = fetch_tree($species, $group);
+#my $newick_response = make_fake_tree($species);
 print $newick_response;
 
 sub make_fake_tree {
